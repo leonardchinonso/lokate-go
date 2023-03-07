@@ -57,7 +57,3 @@ func (u *UserDAO) FindOneByEmail() (bool, error) {
 	}
 	return true, nil
 }
-
-//func (u *UserDAO) FindOneById() error {
-//
-//}

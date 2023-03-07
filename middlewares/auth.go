@@ -1,10 +1,11 @@
 package middlewares
 
 import (
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/leonardchinonso/lokate-go/errors"
 	"github.com/leonardchinonso/lokate-go/services"
-	"strings"
 )
 
 func Authenticate(c *gin.Context) {

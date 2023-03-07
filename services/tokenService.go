@@ -2,12 +2,13 @@ package services
 
 import (
 	"fmt"
-	"github.com/golang-jwt/jwt"
-	"github.com/leonardchinonso/lokate-go/config"
-	"github.com/leonardchinonso/lokate-go/models/dao"
 	"log"
 	"strconv"
 	"time"
+
+	"github.com/golang-jwt/jwt"
+	"github.com/leonardchinonso/lokate-go/config"
+	"github.com/leonardchinonso/lokate-go/models/dao"
 )
 
 type tokenCustomClaims struct {
@@ -65,26 +66,6 @@ func generateRefreshToken(user *dao.UserDAO) (string, error) {
 	rtSecretKey := config.Map[config.RTSecretKey]
 
 	return generateToken(user, rtSecretKey, int64(rtExpiresIn))
-}
-
-func VerifyToken(tokenString string) error {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// validate the signature
-		_, ok := token.Method.(*jwt.SigningMethodECDSA)
-		if !ok {
-			return "", fmt.Errorf("unauthorized signature")
-		}
-		return []byte(config.Map[config.ATSecretKey]), nil
-	})
-	if err != nil {
-		return fmt.Errorf("unauthorized: %v", err)
-	}
-
-	// validate the token
-	if !token.Valid {
-		return fmt.Errorf("unauthorized access")
-	}
-	return nil
 }
 
 func GenerateTokenPair(user *dao.UserDAO) (string, string, error) {

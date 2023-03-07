@@ -17,26 +17,6 @@ type TokenDAO struct {
 	RefreshToken string             `json:"refresh_token" bson:"refresh_token"`
 }
 
-// Create creates a new token document
-func (t *TokenDAO) Create() error {
-	_, err := models.TokenCollection.InsertOne(context.TODO(), *t)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// Update updates a token document
-func (t *TokenDAO) Update() error {
-	filter := bson.D{{"user_id", t.UserId}}
-	update := bson.D{{"$set", bson.D{{"refresh_token", t.RefreshToken}, {"access_token", t.AccessToken}}}}
-	_, err := models.TokenCollection.UpdateOne(context.TODO(), filter, update)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // Delete deletes a token document
 func (t *TokenDAO) Delete() error {
 	filter := bson.D{{"user_id", t.UserId}}
