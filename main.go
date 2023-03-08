@@ -2,54 +2,63 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"github.com/leonardchinonso/lokate-go/config"
-	"github.com/leonardchinonso/lokate-go/models"
-	"github.com/leonardchinonso/lokate-go/routes"
-	"go.mongodb.org/mongo-driver/mongo"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/leonardchinonso/lokate-go/datasource"
+	"github.com/leonardchinonso/lokate-go/injection"
 )
 
-const baseURI = "mongodb://localhost:27017/"
-
-func closeAll(client *mongo.Client, ctx context.Context, cancelFunc context.CancelFunc) {
-	// cancel the context after the database client has closed its connections
-	defer cancelFunc()
-
-	defer func() {
-		// disconnect from the client
-		if err := client.Disconnect(ctx); err != nil {
-			panic(err)
-		}
-	}()
-}
-
 func main() {
-	// initialise the configuration variables
-	err := config.InitConfig()
-	if err != nil {
-		panic(err)
-	}
+	log.Println("Starting Server...")
 
-	// connect to the mongo database using the uri specified
-	client, ctx, cancel, err := models.ConnectDatabase(baseURI + config.Map[config.DatabaseName])
+	dataSource, err := datasource.InitDataSource()
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to initialize data sources: %v", err)
 	}
 
 	// release resource when the main function is returned
-	defer closeAll(client, ctx, cancel)
+	defer dataSource.Close()
 
-	// ping the database to make sure all connections were successful
-	err = models.Ping(client, ctx)
+	router, err := injection.Inject(dataSource)
 	if err != nil {
-		panic(err)
+		log.Fatalf("Failed to inject data sources: %v", err)
 	}
 
-	// sync all the collections and models with the application
-	models.SyncCollections(client)
+	srv := &http.Server{
+		Addr:    ":8080",
+		Handler: router,
+	}
 
-	// initiate and run the router engine
-	if err = routes.StartRouter(); err != nil {
-		fmt.Println(fmt.Errorf("failed to start gin engine: %v", err))
+	// Graceful server shutdown - https://github.com/gin-gonic/examples/blob/master/graceful-shutdown/graceful-shutdown/server.go
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Failed to initialize server: %v\n", err)
+		}
+	}()
+
+	log.Printf("Listening on port %v\n", srv.Addr)
+
+	// Wait for kill signal of channel
+	quit := make(chan os.Signal)
+
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	// This blocks until a signal is passed into the quit channel
+	<-quit
+
+	// The context is used to inform the server it has 5 seconds to finish
+	// the request it is currently handling
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Shutdown server
+	log.Printf("\nShutting down server...\n")
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v\n", err)
 	}
 }

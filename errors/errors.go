@@ -1,11 +1,12 @@
 package errors
 
 import (
+	"errors"
 	"net/http"
 )
 
 const (
-	ErrEmailTaken   = "email is taken"
+	// ErrInvalidLogin for when login credentials are incorrect
 	ErrInvalidLogin = "invalid login credentials"
 )
 
@@ -13,8 +14,24 @@ const (
 type RestError struct {
 	Status  int         `json:"status"`
 	Message string      `json:"message"`
-	Error   string      `json:"error"`
+	Err     string      `json:"error"`
 	Data    interface{} `json:"data"`
+}
+
+// Error returns the message from RestError
+// it fulfills the interface requirements for the standard error type
+func (re *RestError) Error() string {
+	return re.Message
+}
+
+// Status checks if the error is of the RestError type
+// returns an internal server error if it is not of the set type
+func Status(err error) int {
+	var re *RestError
+	if errors.As(err, &re) {
+		return re.Status
+	}
+	return http.StatusInternalServerError
 }
 
 // ErrBadRequest returns a RestError for a bad request
@@ -22,7 +39,7 @@ func ErrBadRequest(message string, data interface{}) *RestError {
 	return &RestError{
 		Status:  http.StatusBadRequest,
 		Message: message,
-		Error:   "Bad Request",
+		Err:     "Bad Request",
 		Data:    data,
 	}
 }
@@ -32,7 +49,7 @@ func ErrInternalServerError(message string, data interface{}) *RestError {
 	return &RestError{
 		Status:  http.StatusInternalServerError,
 		Message: message,
-		Error:   "Internal Server Error",
+		Err:     "Internal Server Error",
 		Data:    data,
 	}
 }
@@ -42,7 +59,7 @@ func ErrUnauthorized(message string, data interface{}) *RestError {
 	return &RestError{
 		Status:  http.StatusUnauthorized,
 		Message: message,
-		Error:   "Unauthorized",
+		Err:     "Unauthorized",
 		Data:    data,
 	}
 }
