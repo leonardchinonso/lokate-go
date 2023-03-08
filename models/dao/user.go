@@ -1,19 +1,14 @@
 package dao
 
 import (
-	"context"
 	"fmt"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
-
-	"github.com/leonardchinonso/lokate-go/models"
-	"github.com/pkg/errors"
 )
 
+// UserDAO is the user data access object
 type UserDAO struct {
 	Id          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	FirstName   string             `json:"first_name" binding:"required" bson:"first_name"`
@@ -35,25 +30,4 @@ func NewUser(firstName, lastName, email, password string) *UserDAO {
 		Email:       email,
 		Password:    password,
 	}
-}
-
-func (u *UserDAO) Create() error {
-	_, err := models.UserCollection.InsertOne(context.TODO(), *u)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// FindOneByEmail returns true if a user exists and false otherwise
-// returns an error if there is one
-func (u *UserDAO) FindOneByEmail() (bool, error) {
-	err := models.UserCollection.FindOne(context.TODO(), bson.M{"email": u.Email}).Decode(u)
-	if err != nil {
-		if errors.Is(err, mongo.ErrNoDocuments) {
-			return false, nil
-		}
-		return false, fmt.Errorf("failed to find user: %w", err)
-	}
-	return true, nil
 }
