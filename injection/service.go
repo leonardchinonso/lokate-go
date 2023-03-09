@@ -10,6 +10,7 @@ type HandlerConfig struct {
 	UserService  interfaces.UserServiceInterface
 	TokenService interfaces.TokenServiceInterface
 	CommsService interfaces.CommsServiceInterface
+	ReqService   interfaces.RequestServiceInterface
 }
 
 // injectServices initializes the dependencies and creates them as a config for handler injection
@@ -23,11 +24,16 @@ func injectServices(cfg *map[string]string, servCfg *ServicesConfig) (*HandlerCo
 		return nil, err
 	}
 
+	// initialize the comms service with  the needed config
 	commsService := service.NewCommsService(cfg, servCfg.ContactUsRepo)
+
+	// initialize the external requests service with the needed config
+	reqService := service.NewRequestService()
 
 	return &HandlerConfig{
 		UserService:  userService,
 		TokenService: tokenService,
 		CommsService: commsService,
+		ReqService:   reqService,
 	}, nil
 }
