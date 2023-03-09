@@ -19,6 +19,7 @@ type commsService struct {
 	smtpPort            string
 }
 
+// NewCommsService returns an interface for the comms service methods
 func NewCommsService(cfg *map[string]string, contactUsRepository interfaces.ContactUsRepositoryInterface) interfaces.CommsServiceInterface {
 	username := (*cfg)[config.SmtpUsername]
 	password := (*cfg)[config.SmtpPassword]

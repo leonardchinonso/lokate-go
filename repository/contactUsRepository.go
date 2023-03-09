@@ -13,12 +13,14 @@ type commsRepo struct {
 
 const contactUsCollectionName = "contact_us"
 
+// NewContactUsRepository returns a contactUs interface with all the model repository methods
 func NewContactUsRepository(db *mongo.Database) interfaces.ContactUsRepositoryInterface {
 	return &commsRepo{
 		c: db.Collection(contactUsCollectionName),
 	}
 }
 
+// Create creates a new contactUs document in the database
 func (c *commsRepo) Create(ctx context.Context, comms *dao.ContactUsDAO) error {
 	_, err := c.c.InsertOne(ctx, comms)
 	if err != nil {

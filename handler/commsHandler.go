@@ -14,6 +14,7 @@ import (
 	"github.com/leonardchinonso/lokate-go/models/interfaces"
 )
 
+// CommsHandler handles communication related requests
 type CommsHandler struct {
 	commsService interfaces.CommsServiceInterface
 	tokenService interfaces.TokenServiceInterface
@@ -34,6 +35,7 @@ func InitCommsHandler(router *gin.Engine, version string, commsService interface
 	g.POST("contact-us", middlewares.AuthorizeUser(h.tokenService), h.ContactUs)
 }
 
+// ContactUs handles the incoming request for the contact us feature
 func (ch *CommsHandler) ContactUs(c *gin.Context) {
 	// retrieve the logged-in user from the authenticated request
 	user, ok := UserFromRequest(c)
