@@ -12,6 +12,7 @@ func injectHandlers(router *gin.Engine, cfg *map[string]string, handlerCfg *Hand
 	// get the current version number for correct routing
 	version := (*cfg)[config.Version]
 
-	// initialize the auth handler
+	// initialize the handlers
 	handler.InitAuthHandler(router, version, handlerCfg.UserService, handlerCfg.TokenService)
+	handler.InitCommsHandler(router, version, handlerCfg.CommsService, handlerCfg.TokenService)
 }

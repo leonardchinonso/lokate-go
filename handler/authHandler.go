@@ -38,11 +38,12 @@ func InitAuthHandler(router *gin.Engine, version string, userService interfaces.
 }
 
 // Signup handles the incoming signup request
-func (a *AuthHandler) Signup(c *gin.Context) {
+func (ah *AuthHandler) Signup(c *gin.Context) {
 	var sr dto.SignupRequest
 
 	// fill the signup request from binding the JSON request
 	if err := c.ShouldBindJSON(&sr); err != nil {
+		log.Printf("Failed to bind JSON with request. Error: %v\n", err)
 		resErr := errors.ErrBadRequest(err.Error(), nil)
 		c.JSON(resErr.Status, resErr)
 		return
@@ -55,11 +56,11 @@ func (a *AuthHandler) Signup(c *gin.Context) {
 		return
 	}
 
-	// create a new user object with the details
+	// create ah new user object with the details
 	user := dao.NewUser(sr.FirstName, sr.LastName, string(sr.Email), string(sr.Password))
 
 	// start the signup process
-	userId, err := a.userService.Signup(c, user, sr.Password)
+	userId, err := ah.userService.Signup(c, user, sr.Password)
 	if err != nil {
 		log.Printf("Failed to sign user up. Error: %v\n", err.Error())
 		c.JSON(errors.Status(err), gin.H{"error": err})
@@ -69,7 +70,7 @@ func (a *AuthHandler) Signup(c *gin.Context) {
 	log.Printf("ID OF USER: %+v\n", userId)
 
 	// retrieve the new user object from the database
-	user, err = a.userService.GetUserByID(c, userId)
+	user, err = ah.userService.GetUserByID(c, userId)
 	if err != nil {
 		log.Printf("Failed to get user from database. Error: %v\n", err.Error())
 		c.JSON(errors.Status(err), gin.H{"error": err})
@@ -77,14 +78,14 @@ func (a *AuthHandler) Signup(c *gin.Context) {
 	}
 
 	// create the access and refresh token pairs
-	at, rt, err := a.tokenService.GenerateTokenPair(c, user)
+	at, rt, err := ah.tokenService.GenerateTokenPair(c, user)
 	if err != nil {
 		log.Printf("Failed to generate user token pair. Error: %v\n", err.Error())
 		c.JSON(errors.Status(err), gin.H{"error": err})
 		return
 	}
 
-	// create a signup (login) response and return it to the handler's caller
+	// create ah signup (login) response and return it to the handler's caller
 	loginResp := dto.NewLoginResponse(*user, at, rt)
 	resp := utils.ResponseStatusCreated("signed up successfully", loginResp)
 
@@ -92,11 +93,12 @@ func (a *AuthHandler) Signup(c *gin.Context) {
 }
 
 // Login handles the incoming login request
-func (a *AuthHandler) Login(c *gin.Context) {
+func (ah *AuthHandler) Login(c *gin.Context) {
 	var lr dto.LoginRequest
 
 	// fill the login request from binding the JSON request
 	if err := c.ShouldBindJSON(&lr); err != nil {
+		log.Printf("Failed to bind JSON with request. Error: %v\n", err)
 		resErr := errors.ErrBadRequest(err.Error(), nil)
 		c.JSON(resErr.Status, resErr)
 		return
@@ -109,11 +111,11 @@ func (a *AuthHandler) Login(c *gin.Context) {
 		return
 	}
 
-	// create a new user object with the details
+	// create ah new user object with the details
 	user := dao.NewUser("", "", string(lr.Email), string(lr.Password))
 
 	// start the login process
-	err := a.userService.Login(c, user, lr.Password)
+	err := ah.userService.Login(c, user, lr.Password)
 	if err != nil {
 		log.Printf("Failed to login user. Error: %v\n", err.Error())
 		c.JSON(errors.Status(err), gin.H{"error": err})
@@ -121,14 +123,14 @@ func (a *AuthHandler) Login(c *gin.Context) {
 	}
 
 	// create the access and refresh token pairs
-	at, rt, err := a.tokenService.GenerateTokenPair(c, user)
+	at, rt, err := ah.tokenService.GenerateTokenPair(c, user)
 	if err != nil {
 		log.Printf("Failed to generate user token pair. Error: %v\n", err.Error())
 		c.JSON(errors.Status(err), gin.H{"error": err})
 		return
 	}
 
-	// create a login response and return it to the handler's caller
+	// create ah login response and return it to the handler's caller
 	loginResp := dto.NewLoginResponse(*user, at, rt)
 	resp := utils.ResponseStatusCreated("logged in successfully", loginResp)
 
@@ -136,9 +138,9 @@ func (a *AuthHandler) Login(c *gin.Context) {
 }
 
 // Logout handles the incoming logout request
-func (a *AuthHandler) Logout(c *gin.Context) {
+func (ah *AuthHandler) Logout(c *gin.Context) {
 	// retrieve the logged-in user from the authenticated request
-	u, ok := c.Get("user")
+	user, ok := UserFromRequest(c)
 	if !ok {
 		log.Printf("Failed to retrieve user from authenticated request")
 		resErr := errors.ErrUnauthorized("you are not logged in", nil)
@@ -146,11 +148,8 @@ func (a *AuthHandler) Logout(c *gin.Context) {
 		return
 	}
 
-	// convert the type to a user type
-	user := u.(*dao.UserDAO)
-	
 	// attempt to log the user out
-	err := a.userService.Logout(c, user.Id)
+	err := ah.userService.Logout(c, user.Id)
 	if err != nil {
 		c.JSON(errors.Status(err), gin.H{"error": err})
 		return
