@@ -9,6 +9,7 @@ import (
 type HandlerConfig struct {
 	UserService  interfaces.UserServiceInterface
 	TokenService interfaces.TokenServiceInterface
+	CommsService interfaces.CommsServiceInterface
 }
 
 // injectServices initializes the dependencies and creates them as a config for handler injection
@@ -22,8 +23,11 @@ func injectServices(cfg *map[string]string, servCfg *ServicesConfig) (*HandlerCo
 		return nil, err
 	}
 
+	commsService := service.NewCommsService(cfg, servCfg.ContactUsRepo)
+
 	return &HandlerConfig{
 		UserService:  userService,
 		TokenService: tokenService,
+		CommsService: commsService,
 	}, nil
 }

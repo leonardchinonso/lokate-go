@@ -19,6 +19,15 @@ const (
 	// RTSecretKey is the global config name for the RT_SECRET_KEY variable
 	RTSecretKey = "RT_SECRET_KEY"
 
+	// SmtpUsername is the global config name for the SMTP_USERNAME variable
+	SmtpUsername = "SMTP_USERNAME"
+	// SmtpPassword is the global config name for the SMTP_PASSWORD variable
+	SmtpPassword = "SMTP_PASSWORD"
+	// SmtpHost is the global config name for the SMTP_HOST variable
+	SmtpHost = "SMTP_HOST"
+	// SmtpPort is the global config name for the SMTP_PORT variable
+	SmtpPort = "SMTP_PORT"
+
 	// TAPIAppId is the global config name for the TAPI APP_ID variable
 	TAPIAppId = "TAPI_APP_ID"
 	// TAPIAppKey is the global config name for the TAPI APP_KEY variable
@@ -54,7 +63,10 @@ func InitConfig() (*map[string]string, error) {
 	}
 
 	Map = make(map[string]string)
-	var defaultConfig = []string{TAPIAppId, TAPIAppKey, DatabaseName, ATExpiresIn, RTExpiresIn, ATSecretKey, RTSecretKey, Version, BaseUri}
+	var defaultConfig = []string{
+		TAPIAppId, TAPIAppKey, DatabaseName, ATExpiresIn, RTExpiresIn, ATSecretKey, RTSecretKey, Version, BaseUri,
+		SmtpUsername, SmtpPassword, SmtpHost, SmtpPort,
+	}
 
 	// iterate the preset config variables, retrieve their values and set them in the config map
 	for _, c := range defaultConfig {
