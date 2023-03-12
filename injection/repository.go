@@ -9,16 +9,20 @@ import (
 
 // ServicesConfig is the custom type for starting up services
 type ServicesConfig struct {
-	UserRepo      interfaces.UserRepositoryInterface
-	TokenRepo     interfaces.TokenRepositoryInterface
-	ContactUsRepo interfaces.ContactUsRepositoryInterface
+	UserRepo       interfaces.UserRepositoryInterface
+	TokenRepo      interfaces.TokenRepositoryInterface
+	ContactUsRepo  interfaces.ContactUsRepositoryInterface
+	PlaceRepo      interfaces.PlaceRepositoryInterface
+	SavedPlaceRepo interfaces.SavedPlaceRepositoryInterface
 }
 
 // injectRepositories initializes the dependencies and creates them as a config for services injection
 func injectRepositories(db *mongo.Database) *ServicesConfig {
 	return &ServicesConfig{
-		UserRepo:      repository.NewUserRepository(db),
-		TokenRepo:     repository.NewTokenRepository(db),
-		ContactUsRepo: repository.NewContactUsRepository(db),
+		UserRepo:       repository.NewUserRepository(db),
+		TokenRepo:      repository.NewTokenRepository(db),
+		ContactUsRepo:  repository.NewContactUsRepository(db),
+		PlaceRepo:      repository.NewPlaceRepository(db),
+		SavedPlaceRepo: repository.NewSavedPlaceRepository(db),
 	}
 }

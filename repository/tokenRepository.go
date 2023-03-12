@@ -27,7 +27,7 @@ func NewTokenRepository(db *mongo.Database) interfaces.TokenRepositoryInterface 
 
 // Upsert updates a token by the userId if it exists in the database
 // it inserts a new document if it does not exist
-func (tr *tokenRepo) Upsert(ctx context.Context, token *dao.TokenDAO) error {
+func (tr *tokenRepo) Upsert(ctx context.Context, token *dao.Token) error {
 	filter := bson.D{{"user_id", token.UserId}}
 	update := bson.D{{"$set", bson.D{{"user_id", token.UserId}, {"refresh_token", token.RefreshToken}, {"access_token", token.AccessToken}}}}
 	opts := options.Update().SetUpsert(true)

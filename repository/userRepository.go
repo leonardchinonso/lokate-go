@@ -27,7 +27,7 @@ func NewUserRepository(db *mongo.Database) interfaces.UserRepositoryInterface {
 }
 
 // Create creates a new user document in the database
-func (ur *userRepo) Create(ctx context.Context, user *dao.UserDAO) (primitive.ObjectID, error) {
+func (ur *userRepo) Create(ctx context.Context, user *dao.User) (primitive.ObjectID, error) {
 	result, err := ur.c.InsertOne(ctx, user)
 	if err != nil {
 		return primitive.ObjectID{}, err
@@ -36,11 +36,10 @@ func (ur *userRepo) Create(ctx context.Context, user *dao.UserDAO) (primitive.Ob
 }
 
 // FindByID finds a user by id in the database
-func (ur *userRepo) FindByID(ctx context.Context, user *dao.UserDAO) (bool, error) {
+func (ur *userRepo) FindByID(ctx context.Context, user *dao.User) (bool, error) {
 	err := ur.c.FindOne(ctx, bson.M{"_id": user.Id}).Decode(user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			fmt.Printf("NO DOCUMENTS: %v\n", err)
 			return false, nil
 		}
 		return false, fmt.Errorf("failed to find user: %w", err)
@@ -49,7 +48,7 @@ func (ur *userRepo) FindByID(ctx context.Context, user *dao.UserDAO) (bool, erro
 }
 
 // FindByEmail finds a user by email in the database
-func (ur *userRepo) FindByEmail(ctx context.Context, user *dao.UserDAO) (bool, error) {
+func (ur *userRepo) FindByEmail(ctx context.Context, user *dao.User) (bool, error) {
 	err := ur.c.FindOne(ctx, bson.M{"email": user.Email}).Decode(user)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {

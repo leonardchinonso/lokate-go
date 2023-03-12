@@ -29,15 +29,15 @@ func (lr *LoginRequest) Validate() []error {
 
 // LoginResponse holds the data for login response
 type LoginResponse struct {
-	User         dao.UserDAO `json:"user"`
-	AccessToken  string      `json:"access_token"`
-	RefreshToken string      `json:"refresh_token"`
+	User         dao.User `json:"user"`
+	AccessToken  string   `json:"access_token"`
+	RefreshToken string   `json:"refresh_token"`
 }
 
 // NewLoginResponse returns a new LoginResponse
-func NewLoginResponse(user dao.UserDAO, accessToken, refreshToken string) *LoginResponse {
+func NewLoginResponse(user dao.User, accessToken, refreshToken string) *LoginResponse {
 	return &LoginResponse{
-		User: dao.UserDAO{
+		User: dao.User{
 			Id:          user.Id,
 			FirstName:   user.FirstName,
 			LastName:    user.LastName,

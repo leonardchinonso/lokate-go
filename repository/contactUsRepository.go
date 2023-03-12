@@ -21,7 +21,7 @@ func NewContactUsRepository(db *mongo.Database) interfaces.ContactUsRepositoryIn
 }
 
 // Create creates a new contactUs document in the database
-func (c *commsRepo) Create(ctx context.Context, comms *dao.ContactUsDAO) error {
+func (c *commsRepo) Create(ctx context.Context, comms *dao.ContactUs) error {
 	_, err := c.c.InsertOne(ctx, comms)
 	if err != nil {
 		return err

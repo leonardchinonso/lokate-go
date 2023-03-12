@@ -11,15 +11,15 @@ import (
 
 // UserRepositoryInterface defines methods that are associated with the user repository
 type UserRepositoryInterface interface {
-	Create(ctx context.Context, user *dao.UserDAO) (primitive.ObjectID, error)
-	FindByID(ctx context.Context, user *dao.UserDAO) (bool, error)
-	FindByEmail(ctx context.Context, user *dao.UserDAO) (bool, error)
+	Create(ctx context.Context, user *dao.User) (primitive.ObjectID, error)
+	FindByID(ctx context.Context, user *dao.User) (bool, error)
+	FindByEmail(ctx context.Context, user *dao.User) (bool, error)
 }
 
 // UserServiceInterface defines methods that are associated with the user repository
 type UserServiceInterface interface {
-	Signup(ctx context.Context, user *dao.UserDAO, password dto.Password) (primitive.ObjectID, error)
-	Login(ctx context.Context, user *dao.UserDAO, password dto.Password) error
+	Signup(ctx context.Context, user *dao.User, password dto.Password) (primitive.ObjectID, error)
+	Login(ctx context.Context, user *dao.User, password dto.Password) error
 	Logout(ctx context.Context, userId primitive.ObjectID) error
-	GetUserByID(ctx context.Context, userId primitive.ObjectID) (*dao.UserDAO, error)
+	GetUserByID(ctx context.Context, userId primitive.ObjectID) (*dao.User, error)
 }

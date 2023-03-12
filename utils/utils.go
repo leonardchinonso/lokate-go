@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"log"
 	"net/smtp"
+	"time"
 
-	gomail "gopkg.in/gomail.v2"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"gopkg.in/gomail.v2"
 )
 
 // ShouldBePresentString checks that a string in a field is required
@@ -56,4 +58,11 @@ func SendSimpleMailSMTP(from, to, subject, body, username, password, smtpHost, s
 	}
 
 	return nil
+}
+
+// CurrentPrimitiveTime returns the current time in primitive.Timestamp
+func CurrentPrimitiveTime() primitive.Timestamp {
+	return primitive.Timestamp{
+		T: uint32(time.Now().Unix()),
+	}
 }

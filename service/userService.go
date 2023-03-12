@@ -26,7 +26,7 @@ func NewUserService(userRepo interfaces.UserRepositoryInterface, tokenRepo inter
 }
 
 // Signup handles the user creation and logs the user in
-func (us *userService) Signup(ctx context.Context, user *dao.UserDAO, password dto.Password) (primitive.ObjectID, error) {
+func (us *userService) Signup(ctx context.Context, user *dao.User, password dto.Password) (primitive.ObjectID, error) {
 	// hash the password to hide its real value
 	hashedPassword, err := password.Hash()
 	if err != nil {
@@ -60,7 +60,7 @@ func (us *userService) Signup(ctx context.Context, user *dao.UserDAO, password d
 }
 
 // Login logs the user into the application and returns the authentication tokens
-func (us *userService) Login(ctx context.Context, user *dao.UserDAO, password dto.Password) error {
+func (us *userService) Login(ctx context.Context, user *dao.User, password dto.Password) error {
 	// find the user by email and password
 	userExists, err := us.userRepository.FindByEmail(ctx, user)
 	if err != nil { // if an unexpected error occurs
@@ -83,7 +83,7 @@ func (us *userService) Login(ctx context.Context, user *dao.UserDAO, password dt
 
 // Logout logs the user out of the application
 func (us *userService) Logout(ctx context.Context, userId primitive.ObjectID) error {
-	token := &dao.TokenDAO{
+	token := &dao.Token{
 		UserId: userId,
 	}
 
@@ -97,14 +97,14 @@ func (us *userService) Logout(ctx context.Context, userId primitive.ObjectID) er
 }
 
 // GetUserByID gets a user by their ID
-func (us *userService) GetUserByID(ctx context.Context, userId primitive.ObjectID) (*dao.UserDAO, error) {
+func (us *userService) GetUserByID(ctx context.Context, userId primitive.ObjectID) (*dao.User, error) {
 	// check that the user id is not empty
 	if userId.IsZero() {
 		return nil, errors.ErrBadRequest("invalid user id", nil)
 	}
 
 	// create a new user object
-	user := &dao.UserDAO{Id: userId}
+	user := &dao.User{Id: userId}
 
 	// find the user by the objectId
 	userExists, err := us.userRepository.FindByID(ctx, user)
