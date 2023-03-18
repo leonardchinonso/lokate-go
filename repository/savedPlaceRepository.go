@@ -49,9 +49,14 @@ func (p *savedPlaceRepo) FindByID(ctx context.Context, savedPlace *dao.SavedPlac
 	return p.findOneByQuery(ctx, bson.M{"_id": savedPlace.Id}, savedPlace)
 }
 
-// FindOneByUserID finds a saved place by userId in the database
-func (p *savedPlaceRepo) FindOneByUserID(ctx context.Context, savedPlace *dao.SavedPlace) (bool, error) {
-	return p.findOneByQuery(ctx, bson.M{"user_id": savedPlace.UserId}, savedPlace)
+// FindOneByIDAndUserID finds a saved place by userId and the _id in the database
+func (p *savedPlaceRepo) FindOneByIDAndUserID(ctx context.Context, savedPlace *dao.SavedPlace) (bool, error) {
+	return p.findOneByQuery(ctx, bson.M{"user_id": savedPlace.UserId, "_id": savedPlace.Id}, savedPlace)
+}
+
+// FindOneByPlaceIDAndUserID finds a saved place by the place id and the user id
+func (p *savedPlaceRepo) FindOneByPlaceIDAndUserID(ctx context.Context, savedPlace *dao.SavedPlace) (bool, error) {
+	return p.findOneByQuery(ctx, bson.M{"user_id": savedPlace.UserId, "place_id": savedPlace.PlaceId}, savedPlace)
 }
 
 // Find finds all saved places by the userId in the database
@@ -73,17 +78,31 @@ func (p *savedPlaceRepo) Find(ctx context.Context, userId primitive.ObjectID, sa
 	return true, nil
 }
 
-// Update updates a savedPlace in the database
-func (p *savedPlaceRepo) Update(ctx context.Context, savedPlace *dao.SavedPlace) error {
-	filter := bson.D{{"_id", savedPlace.Id}, {"user_id", savedPlace.UserId}}
-	update := bson.D{{"$set", bson.D{
-		{"name", savedPlace.Name}, {"use_as", savedPlace.UseAs}, {"updated_at", savedPlace.UpdatedAt},
-	}}}
+// updateByQuery updates a savedPlace by a specified query
+func (p *savedPlaceRepo) updateByQuery(ctx context.Context, filter primitive.D, update primitive.D) error {
 	_, err := p.c.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return err
 	}
 	return nil
+}
+
+// Update updates a savedPlace in the database
+func (p *savedPlaceRepo) Update(ctx context.Context, savedPlace *dao.SavedPlace) error {
+	filter := bson.D{{"_id", savedPlace.Id}, {"user_id", savedPlace.UserId}}
+	update := bson.D{{"$set", bson.D{
+		{"name", savedPlace.Name}, {"place_alias", savedPlace.PlaceAlias}, {"updated_at", savedPlace.UpdatedAt},
+	}}}
+	return p.updateByQuery(ctx, filter, update)
+}
+
+// SetAlias sets the alias of a document by a filter in the database
+func (p *savedPlaceRepo) SetAlias(ctx context.Context, savedPlace *dao.SavedPlace, newAlias dao.PlaceAlias) error {
+	filter := bson.D{{"user_id", savedPlace.UserId}, {"place_alias", savedPlace.PlaceAlias}}
+	update := bson.D{{"$set", bson.D{
+		{"place_alias", newAlias},
+	}}}
+	return p.updateByQuery(ctx, filter, update)
 }
 
 // Delete deletes a savedPlace by id from the database

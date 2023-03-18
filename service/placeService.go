@@ -21,8 +21,21 @@ func NewPlaceService(placeRepo interfaces.PlaceRepositoryInterface) interfaces.P
 
 // Create adds a place to the application
 func (ps *placeService) Create(ctx context.Context, place *dao.Place) error {
+	// check if this place already exists in the database
+	placeExists, err := ps.placeRepository.FindByKey(ctx, place)
+	if err != nil {
+		log.Printf("Error finding a place by key. Error: %v\n", err)
+		return errors.ErrInternalServerError(err.Error(), nil)
+	}
+
+	// return an error if the place already exists in the database
+	if placeExists {
+		log.Printf("Failed to create a place in the database. Place already exists")
+		return errors.ErrBadRequest("place already exists", nil)
+	}
+
 	// save the place to the database
-	err := ps.placeRepository.Create(ctx, place)
+	err = ps.placeRepository.Create(ctx, place)
 	if err != nil {
 		log.Printf("Error creating a place. Error: %v\n", err)
 		return errors.ErrInternalServerError(err.Error(), nil)

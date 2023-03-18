@@ -10,12 +10,14 @@ import (
 )
 
 type savedPlaceService struct {
+	placeRepository      interfaces.PlaceRepositoryInterface
 	savedPlaceRepository interfaces.SavedPlaceRepositoryInterface
 }
 
 // NewSavedPlaceService returns an interface for the savedPlace service methods
-func NewSavedPlaceService(savedPlaceRepo interfaces.SavedPlaceRepositoryInterface) interfaces.SavedPlaceServiceInterface {
+func NewSavedPlaceService(placeRepo interfaces.PlaceRepositoryInterface, savedPlaceRepo interfaces.SavedPlaceRepositoryInterface) interfaces.SavedPlaceServiceInterface {
 	return &savedPlaceService{
+		placeRepository:      placeRepo,
 		savedPlaceRepository: savedPlaceRepo,
 	}
 }
@@ -34,11 +36,29 @@ func (ps *savedPlaceService) AddSavedPlace(ctx context.Context, savedPlace *dao.
 		return errors.ErrBadRequest("invalid place id", nil)
 	}
 
-	// validate the savedPlace fields
-	err := savedPlace.Validate()
+	// check that the place exists
+	placeExists, err := ps.placeRepository.FindByID(ctx, &dao.Place{Id: savedPlace.PlaceId})
 	if err != nil {
-		log.Printf("Error validating the saved place object. Error: %v\n", err)
-		return errors.ErrBadRequest(err.Error(), nil)
+		log.Printf("Error finding saved place by userId and placeId. Error: %v", err)
+		return errors.ErrInternalServerError(err.Error(), nil)
+	}
+
+	if !placeExists {
+		log.Printf("Failed to retrieve place. Place does not exist")
+		return errors.ErrBadRequest("cannot find place", nil)
+	}
+
+	// check that a saved place with the placeId and userId does not exist
+	savedPlaceExists, err := ps.savedPlaceRepository.FindOneByPlaceIDAndUserID(ctx, savedPlace)
+	if err != nil {
+		log.Printf("Error finding saved place by userId and placeId. Error: %v", err)
+		return errors.ErrInternalServerError(err.Error(), nil)
+	}
+
+	// if a place has already been saved by the current user
+	if savedPlaceExists {
+		log.Printf("Failed to saved a place. Saved place already exists for this user")
+		return errors.ErrBadRequest("sorry, you have saved this place already", nil)
 	}
 
 	// save the savedPlace to the database
@@ -59,14 +79,14 @@ func (ps *savedPlaceService) GetSavedPlace(ctx context.Context, savedPlace *dao.
 		return errors.ErrBadRequest("invalid user id", nil)
 	}
 
-	// validate the place id field
-	if savedPlace.PlaceId.IsZero() {
-		log.Printf("Error validating place Id: %v\n", savedPlace.PlaceId)
-		return errors.ErrBadRequest("invalid place id", nil)
+	// validate the id field
+	if savedPlace.Id.IsZero() {
+		log.Printf("Error validating place Id: %v\n", savedPlace.Id)
+		return errors.ErrBadRequest("invalid saved_place id", nil)
 	}
 
-	// find the place by the user id and the place id
-	placeExists, err := ps.savedPlaceRepository.FindOneByUserID(ctx, savedPlace)
+	// find the place by the user id and the saved place id
+	placeExists, err := ps.savedPlaceRepository.FindOneByIDAndUserID(ctx, savedPlace)
 	if err != nil {
 		log.Printf("Error finding place with id: %s. Error: %v\n", savedPlace.Id, err.Error())
 		return errors.ErrInternalServerError("failed to retrieve saved place", nil)
@@ -112,13 +132,31 @@ func (ps *savedPlaceService) EditSavedPlace(ctx context.Context, savedPlace *dao
 	}
 
 	// validate the place id field
-	if savedPlace.PlaceId.IsZero() {
-		log.Printf("Error validating place Id: %v\n", savedPlace.PlaceId)
+	if savedPlace.Id.IsZero() {
+		log.Printf("Error validating saved_place Id: %v\n", savedPlace.PlaceId)
 		return errors.ErrBadRequest("invalid place id", nil)
 	}
 
+	// validate the savedPlace object for the PlaceAlias
+	if savedPlace.PlaceAlias == "" { // if the alias is empty, make it the default of None
+		savedPlace.PlaceAlias = dao.None
+	} else { // else validate that it is a valid alias
+		err := savedPlace.PlaceAlias.Validate()
+		if err != nil {
+			log.Printf("Failed to validate PlaceAlias: %v\n", savedPlace.PlaceAlias)
+			return errors.ErrBadRequest("invalid place alias", nil)
+		}
+	}
+
+	// reset the place alias for the user if it is a HOME or WORK
+	err := ps.resetPlaceAliasForUser(ctx, savedPlace)
+	if err != nil {
+		log.Printf("Failed to reset PlaceAlias. Error: %v\n", err)
+		return errors.ErrInternalServerError("failed to update saved place", nil)
+	}
+
 	// updated the place with the new information
-	err := ps.savedPlaceRepository.Update(ctx, savedPlace)
+	err = ps.savedPlaceRepository.Update(ctx, savedPlace)
 	if err != nil {
 		log.Printf("Error updating place with id: %v and userId: %v. Error: %v\n", savedPlace.Id, savedPlace.UserId, err.Error())
 		return errors.ErrInternalServerError("failed to update saved place", nil)
@@ -140,6 +178,22 @@ func (ps *savedPlaceService) DeleteSavedPlace(ctx context.Context, savedPlace *d
 	if err != nil {
 		log.Printf("Error deleting savedPlace with Id: %v. Error: %v\n", savedPlace.Id, err)
 		return errors.ErrInternalServerError(err.Error(), nil)
+	}
+
+	return nil
+}
+
+// resetPlaceAliasForUser resets a user's HOME  or WORK to "NONE" to allow the new update
+func (ps *savedPlaceService) resetPlaceAliasForUser(ctx context.Context, savedPlace *dao.SavedPlace) error {
+	if savedPlace.PlaceAlias.IsNone() {
+		return nil
+	}
+
+	// The PlaceAlias is HOME or WORK, change the former user alias to NONE
+	err := ps.savedPlaceRepository.SetAlias(ctx, savedPlace, dao.None)
+	if err != nil {
+		log.Printf("Error resetting savedPlace PlaceAlias with id: %v and userId: %v. Error: %v\n", savedPlace.Id, savedPlace.UserId, err.Error())
+		return errors.ErrInternalServerError("failed to update saved place", nil)
 	}
 
 	return nil

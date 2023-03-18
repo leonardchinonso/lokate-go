@@ -36,7 +36,7 @@ func injectServices(cfg *map[string]string, servCfg *ServicesConfig) (*HandlerCo
 	placeService := service.NewPlaceService(servCfg.PlaceRepo)
 
 	// initialize the place service with the needed config
-	savedPlaceService := service.NewSavedPlaceService(servCfg.SavedPlaceRepo)
+	savedPlaceService := service.NewSavedPlaceService(servCfg.PlaceRepo, servCfg.SavedPlaceRepo)
 
 	return &HandlerConfig{
 		UserService:       userService,

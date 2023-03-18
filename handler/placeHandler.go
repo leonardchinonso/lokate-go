@@ -15,20 +15,22 @@ import (
 )
 
 type PlaceHandler struct {
-	placeService interfaces.PlaceServiceInterface
+	placeService      interfaces.PlaceServiceInterface
+	savedPlaceService interfaces.SavedPlaceServiceInterface
 }
 
 // InitPlaceHandler initializes and sets up the saved places handler
-func InitPlaceHandler(router *gin.Engine, version string, placeService interfaces.PlaceServiceInterface) {
+func InitPlaceHandler(router *gin.Engine, version string, placeService interfaces.PlaceServiceInterface, savedPlaceService interfaces.SavedPlaceServiceInterface) {
 	h := &PlaceHandler{
-		placeService: placeService,
+		placeService:      placeService,
+		savedPlaceService: savedPlaceService,
 	}
 
 	// group routes according to paths
 	path := fmt.Sprintf("%s%s", version, "/places")
 	g := router.Group(path)
 
-	// register endpoints
+	// register endpoints for places
 	g.POST("/", h.AddPlace)
 	g.GET("/:id", h.GetPlace)
 }
@@ -37,7 +39,7 @@ func InitPlaceHandler(router *gin.Engine, version string, placeService interface
 func (h *PlaceHandler) AddPlace(c *gin.Context) {
 	var p dto.PlaceDTO
 
-	// fill the contact us request by binding the JSON
+	// fill the add place request by binding the JSON
 	if err := c.ShouldBindJSON(&p); err != nil {
 		log.Printf("Failed to bind JSON with request. Error: %v\n", err)
 		resErr := errors.ErrBadRequest(err.Error(), nil)
@@ -51,12 +53,12 @@ func (h *PlaceHandler) AddPlace(c *gin.Context) {
 	// add place to the database
 	err := h.placeService.Create(c, place)
 	if err != nil {
-		log.Printf("Error creating place document in the database. Error: %v\n", err)
+		log.Printf("Error creating a place with placeService. Error: %v\n", err)
 		c.JSON(errors.Status(err), gin.H{"error": err})
 		return
 	}
 
-	resp := utils.ResponseStatusCreated("place added successfully", place)
+	resp := utils.ResponseStatusCreated("place added successfully", nil)
 	c.JSON(resp.Status, resp)
 }
 
@@ -84,26 +86,4 @@ func (h *PlaceHandler) GetPlace(c *gin.Context) {
 
 	resp := utils.ResponseStatusOK("place retrieved successfully", place)
 	c.JSON(resp.Status, resp)
-}
-
-// SavePlace handles the request to save a place to the application
-func (h *PlaceHandler) SavePlace(c *gin.Context) {
-	// get the place id from the path parameter
-	_, err := primitive.ObjectIDFromHex(c.Param("id"))
-	if err != nil {
-		log.Printf("Failed to convert hex string to place id. Error: %v\n", err)
-		resErr := errors.ErrBadRequest("invalid place id", nil)
-		c.JSON(resErr.Status, resErr)
-		return
-	}
-
-	// retrieve the logged-in user from the authenticated request
-	_, ok := UserFromRequest(c)
-	if !ok {
-		log.Printf("Failed to retrieve user from authenticated request")
-		resErr := errors.ErrUnauthorized("you are not logged in", nil)
-		c.JSON(resErr.Status, gin.H{"errors": resErr})
-		return
-	}
-
 }

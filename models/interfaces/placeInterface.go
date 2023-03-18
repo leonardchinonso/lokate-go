@@ -10,6 +10,7 @@ import (
 type PlaceRepositoryInterface interface {
 	Create(ctx context.Context, place *dao.Place) error
 	FindByID(ctx context.Context, place *dao.Place) (bool, error)
+	FindByKey(ctx context.Context, place *dao.Place) (bool, error)
 }
 
 // PlaceServiceInterface defines methods that are applicable to the place service

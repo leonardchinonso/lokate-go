@@ -48,3 +48,8 @@ func (p *placeRepo) Create(ctx context.Context, place *dao.Place) error {
 func (p *placeRepo) FindByID(ctx context.Context, place *dao.Place) (bool, error) {
 	return p.findByQuery(ctx, bson.M{"_id": place.Id}, place)
 }
+
+// FindByKey finds a place by key in the database
+func (p *placeRepo) FindByKey(ctx context.Context, place *dao.Place) (bool, error) {
+	return p.findByQuery(ctx, bson.M{"key": place.Key}, place)
+}
