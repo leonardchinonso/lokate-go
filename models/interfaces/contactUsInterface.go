@@ -7,9 +7,9 @@ import (
 
 // ContactUsRepositoryInterface defines the methods for the contact us repository
 type ContactUsRepositoryInterface interface {
-	Create(ctx context.Context, contactUs *dao.ContactUsDAO) error
+	Create(ctx context.Context, contactUs *dao.ContactUs) error
 }
 
 type ContactUsServiceInterface interface {
-	SendContactUsEmail(ctx context.Context, contactUs *dao.ContactUsDAO) error
+	SendContactUsEmail(ctx context.Context, contactUs *dao.ContactUs) error
 }

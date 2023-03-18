@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/leonardchinonso/lokate-go/utils"
 	"log"
 	"strconv"
 	"time"
@@ -44,7 +45,7 @@ func NewTokenService(cfg *map[string]string, tokenRepo interfaces.TokenRepositor
 }
 
 // GenerateTokenPair generates an access token and a refresh token for the specified user
-func (ts *tokenService) GenerateTokenPair(ctx context.Context, user *dao.UserDAO) (string, string, error) {
+func (ts *tokenService) GenerateTokenPair(ctx context.Context, user *dao.User) (string, string, error) {
 	at, err := generateAccessToken(user)
 	if err != nil {
 		log.Printf("Error generating access token for uid: %v. Error: %v\n", user.Id, err.Error())
@@ -57,10 +58,11 @@ func (ts *tokenService) GenerateTokenPair(ctx context.Context, user *dao.UserDAO
 		return "", "", err
 	}
 
-	token := &dao.TokenDAO{
+	token := &dao.Token{
 		UserId:       user.Id,
 		AccessToken:  at,
 		RefreshToken: rt,
+		CreatedAt:    utils.CurrentPrimitiveTime(),
 	}
 
 	if err = ts.tokenRepository.Upsert(ctx, token); err != nil {
@@ -72,7 +74,7 @@ func (ts *tokenService) GenerateTokenPair(ctx context.Context, user *dao.UserDAO
 }
 
 // UserFromAccessToken gets a user from their access token
-func (ts *tokenService) UserFromAccessToken(tokenString string) (*dao.UserDAO, error) {
+func (ts *tokenService) UserFromAccessToken(tokenString string) (*dao.User, error) {
 	claims, err := verifyAccessToken(tokenString, config.Map[config.ATSecretKey])
 
 	if err != nil {
@@ -84,12 +86,12 @@ func (ts *tokenService) UserFromAccessToken(tokenString string) (*dao.UserDAO, e
 }
 
 type tokenCustomClaims struct {
-	User *dao.UserDAO `json:"user"`
+	User *dao.User `json:"user"`
 	jwt.StandardClaims
 }
 
 // generateToken generates a new jwt
-func generateToken(user *dao.UserDAO, jwtSecretKey string, expiresIn int64) (string, error) {
+func generateToken(user *dao.User, jwtSecretKey string, expiresIn int64) (string, error) {
 	unixTime := time.Now().Unix()
 	tokenExpiresIn := unixTime + expiresIn
 
@@ -116,7 +118,7 @@ func generateToken(user *dao.UserDAO, jwtSecretKey string, expiresIn int64) (str
 }
 
 // generateAccessToken generates a new jwt for the access token
-func generateAccessToken(user *dao.UserDAO) (string, error) {
+func generateAccessToken(user *dao.User) (string, error) {
 	// get the access token secret key for signing the token
 	atExpiresIn, err := strconv.Atoi(config.Map[config.ATExpiresIn])
 	if err != nil {
@@ -130,7 +132,7 @@ func generateAccessToken(user *dao.UserDAO) (string, error) {
 }
 
 // generateRefreshToken generates a new jwt for the refresh token
-func generateRefreshToken(user *dao.UserDAO) (string, error) {
+func generateRefreshToken(user *dao.User) (string, error) {
 	// get the refresh token secret key for signing the token
 	rtExpiresIn, err := strconv.Atoi(config.Map[config.RTExpiresIn])
 	if err != nil {

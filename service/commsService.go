@@ -36,7 +36,7 @@ func NewCommsService(cfg *map[string]string, contactUsRepository interfaces.Cont
 }
 
 // SendContactUsEmail sends a message from the contact us to the app email
-func (cs *commsService) SendContactUsEmail(ctx context.Context, contactUs *dao.ContactUsDAO) error {
+func (cs *commsService) SendContactUsEmail(ctx context.Context, contactUs *dao.ContactUs) error {
 	// make sure userId is not empty
 	if contactUs.UserId.IsZero() {
 		return errors.ErrBadRequest("invalid user id", nil)
