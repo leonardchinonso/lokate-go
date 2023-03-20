@@ -2,7 +2,9 @@ package handler
 
 import (
 	"fmt"
+	"github.com/leonardchinonso/lokate-go/middlewares"
 	"log"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -15,15 +17,23 @@ import (
 )
 
 type PlaceHandler struct {
-	placeService      interfaces.PlaceServiceInterface
-	savedPlaceService interfaces.SavedPlaceServiceInterface
+	placeService            interfaces.PlaceServiceInterface
+	savedPlaceService       interfaces.SavedPlaceServiceInterface
+	lastVisitedPlaceService interfaces.LastVisitedPlaceServiceInterface
+	tokenService            interfaces.TokenServiceInterface
 }
 
 // InitPlaceHandler initializes and sets up the saved places handler
-func InitPlaceHandler(router *gin.Engine, version string, placeService interfaces.PlaceServiceInterface, savedPlaceService interfaces.SavedPlaceServiceInterface) {
+func InitPlaceHandler(router *gin.Engine, version string, placeService interfaces.PlaceServiceInterface,
+	savedPlaceService interfaces.SavedPlaceServiceInterface,
+	lastVisitedPlace interfaces.LastVisitedPlaceServiceInterface,
+	tokenService interfaces.TokenServiceInterface,
+) {
 	h := &PlaceHandler{
-		placeService:      placeService,
-		savedPlaceService: savedPlaceService,
+		placeService:            placeService,
+		savedPlaceService:       savedPlaceService,
+		lastVisitedPlaceService: lastVisitedPlace,
+		tokenService:            tokenService,
 	}
 
 	// group routes according to paths
@@ -33,6 +43,10 @@ func InitPlaceHandler(router *gin.Engine, version string, placeService interface
 	// register endpoints for places
 	g.POST("/", h.AddPlace)
 	g.GET("/:id", h.GetPlace)
+
+	// register endpoints for last visited places
+	g.POST("/:id/last", middlewares.AuthorizeUser(h.tokenService), h.AddLastVisitedPlace)
+	g.GET("/last/:num", middlewares.AuthorizeUser(h.tokenService), h.GetLastNVisitedPlaces)
 }
 
 // AddPlace handles the request to add a place to the application
@@ -50,7 +64,7 @@ func (h *PlaceHandler) AddPlace(c *gin.Context) {
 	// create a place object
 	place := dao.NewPlace(p.Type, p.Name, p.Latitude, p.Longitude, p.Accuracy, p.OSMId, p.Description)
 
-	// add place to the database
+	// make the call to the place service
 	err := h.placeService.Create(c, place)
 	if err != nil {
 		log.Printf("Error creating a place with placeService. Error: %v\n", err)
@@ -85,5 +99,78 @@ func (h *PlaceHandler) GetPlace(c *gin.Context) {
 	}
 
 	resp := utils.ResponseStatusOK("place retrieved successfully", place)
+	c.JSON(resp.Status, resp)
+}
+
+// AddLastVisitedPlace handles the request to add a place to the last visited places
+func (h *PlaceHandler) AddLastVisitedPlace(c *gin.Context) {
+	// get the place id from the path parameter
+	placeId, err := primitive.ObjectIDFromHex(c.Param("id"))
+	if err != nil {
+		log.Printf("Failed to convert hex string to saved_place id. Error: %v\n", err)
+		resErr := errors.ErrBadRequest("invalid saved_place id", nil)
+		c.JSON(resErr.Status, resErr)
+		return
+	}
+
+	// retrieve the logged-in user from the authenticated request
+	user, ok := UserFromRequest(c)
+	if !ok {
+		log.Printf("Failed to retrieve user from authenticated request")
+		resErr := errors.ErrUnauthorized("you are not logged in", nil)
+		c.JSON(resErr.Status, gin.H{"errors": resErr})
+		return
+	}
+
+	// create a new last visited place object to pass to the service
+	lastVisitedPlace := dao.NewLastVisitedPlace(user.Id, placeId)
+
+	// make a call to the last visited place service
+	err = h.lastVisitedPlaceService.AddLastVisitedPlace(c, lastVisitedPlace)
+	if err != nil {
+		log.Printf("Error adding a place to last visited with placeService. Error: %v\n", err)
+		c.JSON(errors.Status(err), gin.H{"error": err})
+		return
+	}
+
+	resp := utils.ResponseStatusOK("place added successfully", nil)
+	c.JSON(resp.Status, resp)
+}
+
+// GetLastNVisitedPlaces handles the request the N last visited places by a user
+func (h *PlaceHandler) GetLastNVisitedPlaces(c *gin.Context) {
+	// retrieve the logged-in user from the authenticated request
+	user, ok := UserFromRequest(c)
+	if !ok {
+		log.Printf("Failed to retrieve user from authenticated request")
+		resErr := errors.ErrUnauthorized("you are not logged in", nil)
+		c.JSON(resErr.Status, gin.H{"errors": resErr})
+		return
+	}
+
+	// read the num from the path parameter
+	num := c.Param("num")
+
+	// convert the number to an integer
+	numberOfPlaces, err := strconv.Atoi(num)
+	if err != nil {
+		log.Printf("Failed to convert number: %v to string", num)
+		resErr := errors.ErrInternalServerError("failed to get last %v visited places", num)
+		c.JSON(resErr.Status, gin.H{"error": err})
+		return
+	}
+
+	// create a list of last visited places to read from the service
+	var lastVisitedPlaces []dao.LastVisitedPlace
+
+	// make a call to the place service to fetch the places
+	err = h.lastVisitedPlaceService.GetLastNVisitedPlaces(c, user.Id, &lastVisitedPlaces, int64(numberOfPlaces))
+	if err != nil {
+		log.Printf("Error getting %v last visited places from service. Error %v", numberOfPlaces, err)
+		c.JSON(errors.Status(err), gin.H{"error": err})
+		return
+	}
+
+	resp := utils.ResponseStatusOK("last visited places retrieved successfully", lastVisitedPlaces)
 	c.JSON(resp.Status, resp)
 }
