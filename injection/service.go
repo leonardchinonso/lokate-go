@@ -7,12 +7,13 @@ import (
 
 // HandlerConfig holds the configuration values for initializing the handlers
 type HandlerConfig struct {
-	UserService       interfaces.UserServiceInterface
-	TokenService      interfaces.TokenServiceInterface
-	CommsService      interfaces.CommsServiceInterface
-	ReqService        interfaces.RequestServiceInterface
-	PlaceService      interfaces.PlaceServiceInterface
-	SavedPlaceService interfaces.SavedPlaceServiceInterface
+	UserService             interfaces.UserServiceInterface
+	TokenService            interfaces.TokenServiceInterface
+	CommsService            interfaces.CommsServiceInterface
+	ReqService              interfaces.RequestServiceInterface
+	PlaceService            interfaces.PlaceServiceInterface
+	SavedPlaceService       interfaces.SavedPlaceServiceInterface
+	LastVisitedPlaceService interfaces.LastVisitedPlaceServiceInterface
 }
 
 // injectServices initializes the dependencies and creates them as a config for handler injection
@@ -38,12 +39,16 @@ func injectServices(cfg *map[string]string, servCfg *ServicesConfig) (*HandlerCo
 	// initialize the place service with the needed config
 	savedPlaceService := service.NewSavedPlaceService(servCfg.PlaceRepo, servCfg.SavedPlaceRepo)
 
+	// initialize the last visited place service with the needed config
+	lastVisitedPlaceService := service.NewLastVisitedPlaceService(servCfg.LastVisitedPlaceRepo, servCfg.PlaceRepo)
+
 	return &HandlerConfig{
-		UserService:       userService,
-		TokenService:      tokenService,
-		CommsService:      commsService,
-		ReqService:        reqService,
-		PlaceService:      placeService,
-		SavedPlaceService: savedPlaceService,
+		UserService:             userService,
+		TokenService:            tokenService,
+		CommsService:            commsService,
+		ReqService:              reqService,
+		PlaceService:            placeService,
+		SavedPlaceService:       savedPlaceService,
+		LastVisitedPlaceService: lastVisitedPlaceService,
 	}, nil
 }

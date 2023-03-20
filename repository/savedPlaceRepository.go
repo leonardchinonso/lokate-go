@@ -15,7 +15,7 @@ type savedPlaceRepo struct {
 	c *mongo.Collection
 }
 
-const savedPlaceCollectionName = "savedPlaces"
+const savedPlaceCollectionName = "saved_places"
 
 func NewSavedPlaceRepository(db *mongo.Database) interfaces.SavedPlaceRepositoryInterface {
 	return &savedPlaceRepo{
