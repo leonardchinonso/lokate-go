@@ -32,6 +32,12 @@ const (
 	TAPIAppId = "TAPI_APP_ID"
 	// TAPIAppKey is the global config name for the TAPI APP_KEY variable
 	TAPIAppKey = "TAPI_APP_KEY"
+	// TAPIPlacesUrl is the global config name for the TAPI_PLACES_URL variable
+	TAPIPlacesUrl = "TAPI_PLACES_URL"
+	// TAPIPublicJourneyUrl is the global config name for the TAPI_PUBLIC_JOURNEY_URL variable
+	TAPIPublicJourneyUrl = "TAPI_PUBLIC_JOURNEY_URL"
+	// TAPIServiceName is the global config name for the TAPI_SERVICE_NAME variable
+	TAPIServiceName = "TAPI_SERVICE_NAME"
 
 	// DatabaseName is the global config name for the DATABASE_NAME variable
 	DatabaseName = "DATABASE_NAME"
@@ -65,7 +71,7 @@ func InitConfig() (*map[string]string, error) {
 	Map = make(map[string]string)
 	var defaultConfig = []string{
 		TAPIAppId, TAPIAppKey, DatabaseName, ATExpiresIn, RTExpiresIn, ATSecretKey, RTSecretKey, Version, BaseUri,
-		SmtpUsername, SmtpPassword, SmtpHost, SmtpPort,
+		SmtpUsername, SmtpPassword, SmtpHost, SmtpPort, TAPIPlacesUrl, TAPIPublicJourneyUrl, TAPIServiceName,
 	}
 
 	// iterate the preset config variables, retrieve their values and set them in the config map

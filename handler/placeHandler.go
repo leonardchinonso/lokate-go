@@ -16,23 +16,28 @@ import (
 	"github.com/leonardchinonso/lokate-go/utils"
 )
 
+// PlaceHandler represents the router handler object for place requests
 type PlaceHandler struct {
 	placeService            interfaces.PlaceServiceInterface
 	savedPlaceService       interfaces.SavedPlaceServiceInterface
 	lastVisitedPlaceService interfaces.LastVisitedPlaceServiceInterface
+	tapiService             interfaces.TAPIServiceInterface
 	tokenService            interfaces.TokenServiceInterface
 }
 
 // InitPlaceHandler initializes and sets up the saved places handler
-func InitPlaceHandler(router *gin.Engine, version string, placeService interfaces.PlaceServiceInterface,
+func InitPlaceHandler(router *gin.Engine, version string,
+	placeService interfaces.PlaceServiceInterface,
 	savedPlaceService interfaces.SavedPlaceServiceInterface,
 	lastVisitedPlace interfaces.LastVisitedPlaceServiceInterface,
+	tapiService interfaces.TAPIServiceInterface,
 	tokenService interfaces.TokenServiceInterface,
 ) {
 	h := &PlaceHandler{
 		placeService:            placeService,
 		savedPlaceService:       savedPlaceService,
 		lastVisitedPlaceService: lastVisitedPlace,
+		tapiService:             tapiService,
 		tokenService:            tokenService,
 	}
 
@@ -47,6 +52,9 @@ func InitPlaceHandler(router *gin.Engine, version string, placeService interface
 	// register endpoints for last visited places
 	g.POST("/:id/last", middlewares.AuthorizeUser(h.tokenService), h.AddLastVisitedPlace)
 	g.GET("/last/:num", middlewares.AuthorizeUser(h.tokenService), h.GetLastNVisitedPlaces)
+
+	// register endpoints for search
+	g.GET("/search", h.Search)
 }
 
 // AddPlace handles the request to add a place to the application
@@ -62,7 +70,7 @@ func (h *PlaceHandler) AddPlace(c *gin.Context) {
 	}
 
 	// create a place object
-	place := dao.NewPlace(p.Type, p.Name, p.Latitude, p.Longitude, p.Accuracy, p.OSMId, p.Description)
+	place := dao.NewPlace(p.Type, p.Name, p.Description, p.OSMId, p.ATCOCode, p.StationCode, p.TiplocCode, p.SMSCode, p.Accuracy, p.Latitude, p.Longitude)
 
 	// make the call to the place service
 	err := h.placeService.Create(c, place)
@@ -156,7 +164,7 @@ func (h *PlaceHandler) GetLastNVisitedPlaces(c *gin.Context) {
 	if err != nil {
 		log.Printf("Failed to convert number: %v to string", num)
 		resErr := errors.ErrInternalServerError("failed to get last %v visited places", num)
-		c.JSON(resErr.Status, gin.H{"error": err})
+		c.JSON(resErr.Status, gin.H{"error": resErr.Message})
 		return
 	}
 
@@ -172,5 +180,25 @@ func (h *PlaceHandler) GetLastNVisitedPlaces(c *gin.Context) {
 	}
 
 	resp := utils.ResponseStatusOK("last visited places retrieved successfully", lastVisitedPlaces)
+	c.JSON(resp.Status, resp)
+}
+
+// Search handles the request to search for a place with text
+func (h *PlaceHandler) Search(c *gin.Context) {
+	// read the search value from the path parameter
+	searchStr := c.Query("query")
+
+	// create list of places object to put data into
+	var places []dao.Place
+
+	// make a call to the place service to search for the data
+	placesResp, err := h.tapiService.SearchPlace(searchStr, &places)
+	if err != nil {
+		log.Printf("Error searching for places in the place service. Error: %v\n", err)
+		c.JSON(errors.Status(err), gin.H{"error": err})
+		return
+	}
+
+	resp := utils.ResponseStatusOK("places retrieved successfully", placesResp)
 	c.JSON(resp.Status, resp)
 }

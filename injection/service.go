@@ -14,6 +14,7 @@ type HandlerConfig struct {
 	PlaceService            interfaces.PlaceServiceInterface
 	SavedPlaceService       interfaces.SavedPlaceServiceInterface
 	LastVisitedPlaceService interfaces.LastVisitedPlaceServiceInterface
+	TAPIService             interfaces.TAPIServiceInterface
 }
 
 // injectServices initializes the dependencies and creates them as a config for handler injection
@@ -42,6 +43,9 @@ func injectServices(cfg *map[string]string, servCfg *ServicesConfig) (*HandlerCo
 	// initialize the last visited place service with the needed config
 	lastVisitedPlaceService := service.NewLastVisitedPlaceService(servCfg.LastVisitedPlaceRepo, servCfg.PlaceRepo)
 
+	// initialize the TAPI service with the config
+	tapiService := service.NewTAPIService(cfg)
+
 	return &HandlerConfig{
 		UserService:             userService,
 		TokenService:            tokenService,
@@ -50,5 +54,6 @@ func injectServices(cfg *map[string]string, servCfg *ServicesConfig) (*HandlerCo
 		PlaceService:            placeService,
 		SavedPlaceService:       savedPlaceService,
 		LastVisitedPlaceService: lastVisitedPlaceService,
+		TAPIService:             tapiService,
 	}, nil
 }
