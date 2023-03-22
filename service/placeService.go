@@ -2,10 +2,11 @@ package service
 
 import (
 	"context"
+	"log"
+
 	"github.com/leonardchinonso/lokate-go/errors"
 	"github.com/leonardchinonso/lokate-go/models/dao"
 	"github.com/leonardchinonso/lokate-go/models/interfaces"
-	"log"
 )
 
 type placeService struct {

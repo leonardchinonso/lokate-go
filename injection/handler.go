@@ -15,6 +15,8 @@ func injectHandlers(router *gin.Engine, cfg *map[string]string, handlerCfg *Hand
 	// initialize the handlers
 	handler.InitAuthHandler(router, version, handlerCfg.UserService, handlerCfg.TokenService)
 	handler.InitCommsHandler(router, version, handlerCfg.CommsService, handlerCfg.TokenService)
-	handler.InitPlaceHandler(router, version, handlerCfg.PlaceService, handlerCfg.SavedPlaceService, handlerCfg.LastVisitedPlaceService, handlerCfg.TokenService)
+	handler.InitPlaceHandler(router, version, handlerCfg.PlaceService, handlerCfg.SavedPlaceService,
+		handlerCfg.LastVisitedPlaceService, handlerCfg.TAPIService, handlerCfg.TokenService)
 	handler.InitSavedPlaceHandler(router, version, handlerCfg.PlaceService, handlerCfg.SavedPlaceService, handlerCfg.TokenService)
+	handler.InitJourneyHandler(router, version, handlerCfg.TAPIService, handlerCfg.TokenService)
 }

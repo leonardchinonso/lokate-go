@@ -1,15 +1,16 @@
 package dto
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
-
 type PlaceDTO struct {
-	Type        string              `json:"type"`
-	Name        string              `json:"name"`
-	Latitude    string              `json:"latitude"`
-	Longitude   string              `json:"longitude"`
-	Accuracy    string              `json:"accuracy"`
-	OSMId       string              `json:"osm_id"`
-	Description string              `json:"description"`
-	CreatedAt   primitive.Timestamp `json:"created_at"`
-	UpdatedAt   primitive.Timestamp `json:"updated_at"`
+	Type        string   `json:"type"`
+	Name        string   `json:"name"`
+	Latitude    *float64 `json:"latitude"`
+	Longitude   *float64 `json:"longitude"`
+	Accuracy    *int     `json:"accuracy"`
+	Description string   `json:"description"`
+	OSMId       string   `json:"osm_id"`
+	ATCOCode    string   `json:"atcocode"`
+	StationCode string   `json:"station_code"`
+	TiplocCode  string   `json:"tiploc_code"`
+	SMSCode     string   `json:"smscode"`
+	Distance    *int     `json:"distance"`
 }
