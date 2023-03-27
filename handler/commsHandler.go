@@ -33,6 +33,7 @@ func InitCommsHandler(router *gin.Engine, version string, commsService interface
 
 	// register endpoints
 	g.POST("contact-us", middlewares.AuthorizeUser(h.tokenService), h.ContactUs)
+	g.GET("about", h.About)
 }
 
 // ContactUs handles the incoming request for the contact us feature
@@ -67,5 +68,17 @@ func (ch *CommsHandler) ContactUs(c *gin.Context) {
 	}
 
 	resp := utils.ResponseStatusCreated("email sent successfully", nil)
+	c.JSON(resp.Status, resp)
+}
+
+func (ch *CommsHandler) About(c *gin.Context) {
+	// get about details from the service
+	about, err := ch.commsService.Details(c)
+	if err != nil {
+		c.JSON(errors.Status(err), gin.H{"error": err})
+		return
+	}
+
+	resp := utils.ResponseStatusCreated("about details retrieved successfully", about)
 	c.JSON(resp.Status, resp)
 }

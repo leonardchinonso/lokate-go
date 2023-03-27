@@ -29,7 +29,7 @@ func injectServices(cfg *map[string]string, servCfg *ServicesConfig) (*HandlerCo
 	}
 
 	// initialize the comms service with  the needed config
-	commsService := service.NewCommsService(cfg, servCfg.ContactUsRepo)
+	commsService := service.NewCommsService(cfg, servCfg.ContactUsRepo, servCfg.AboutRepo)
 
 	// initialize the external requests service with the needed config
 	reqService := service.NewRequestService()

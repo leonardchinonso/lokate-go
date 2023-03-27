@@ -15,6 +15,7 @@ type ServicesConfig struct {
 	PlaceRepo            interfaces.PlaceRepositoryInterface
 	SavedPlaceRepo       interfaces.SavedPlaceRepositoryInterface
 	LastVisitedPlaceRepo interfaces.LastVisitedPlaceRepositoryInterface
+	AboutRepo            interfaces.AboutRepositoryInterface
 }
 
 // injectRepositories initializes the dependencies and creates them as a config for services injection
@@ -26,5 +27,6 @@ func injectRepositories(db *mongo.Database) *ServicesConfig {
 		PlaceRepo:            repository.NewPlaceRepository(db),
 		SavedPlaceRepo:       repository.NewSavedPlaceRepository(db),
 		LastVisitedPlaceRepo: repository.NewLastVisitedPlaceRepository(db),
+		AboutRepo:            repository.NewAboutRepository(db),
 	}
 }

@@ -13,6 +13,7 @@ import (
 
 type commsService struct {
 	contactUsRepository interfaces.ContactUsRepositoryInterface
+	aboutRepository     interfaces.AboutRepositoryInterface
 	smtpUsername        string
 	smtpPassword        string
 	smtpHost            string
@@ -20,7 +21,7 @@ type commsService struct {
 }
 
 // NewCommsService returns an interface for the comms service methods
-func NewCommsService(cfg *map[string]string, contactUsRepository interfaces.ContactUsRepositoryInterface) interfaces.CommsServiceInterface {
+func NewCommsService(cfg *map[string]string, contactUsRepository interfaces.ContactUsRepositoryInterface, aboutRepository interfaces.AboutRepositoryInterface) interfaces.CommsServiceInterface {
 	username := (*cfg)[config.SmtpUsername]
 	password := (*cfg)[config.SmtpPassword]
 	host := (*cfg)[config.SmtpHost]
@@ -28,6 +29,7 @@ func NewCommsService(cfg *map[string]string, contactUsRepository interfaces.Cont
 
 	return &commsService{
 		contactUsRepository: contactUsRepository,
+		aboutRepository:     aboutRepository,
 		smtpUsername:        username,
 		smtpPassword:        password,
 		smtpHost:            host,
@@ -56,4 +58,16 @@ func (cs *commsService) SendContactUsEmail(ctx context.Context, contactUs *dao.C
 	}
 
 	return nil
+}
+
+// Details retrieves the about details from the database using the repo
+func (cs *commsService) Details(ctx context.Context) (*dao.About, error) {
+	var details = &dao.About{}
+
+	if err := cs.aboutRepository.GetDetails(ctx, details); err != nil {
+		log.Printf("Error getting details from repository. Error: %v\n", err)
+		return nil, errors.ErrInternalServerError("failed to retrieve about details", nil)
+	}
+
+	return details, nil
 }
