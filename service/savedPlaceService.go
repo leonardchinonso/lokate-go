@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"github.com/leonardchinonso/lokate-go/errors"
 	"github.com/leonardchinonso/lokate-go/models/dao"
 	"github.com/leonardchinonso/lokate-go/models/interfaces"
@@ -120,6 +121,19 @@ func (ps *savedPlaceService) GetSavedPlaces(ctx context.Context, userId primitiv
 		return errors.ErrBadRequest("place not found", nil)
 	}
 
+	// manually populate the places in the result
+	allPlacesExist, err := ps.placeRepository.PopulatePlacesInSavedPlaces(ctx, savedPlaces)
+	if err != nil {
+		log.Printf("Error populating places. Error: %v\n", err.Error())
+		return errors.ErrInternalServerError("failed to retrieve places", nil)
+	}
+
+	// return an error if one of the places do not exist
+	if !allPlacesExist {
+		log.Printf("Error: Place missing")
+		return errors.ErrBadRequest("a place is missing", nil)
+	}
+
 	return nil
 }
 
@@ -155,12 +169,16 @@ func (ps *savedPlaceService) EditSavedPlace(ctx context.Context, savedPlace *dao
 		return errors.ErrInternalServerError("failed to update saved place", nil)
 	}
 
+	fmt.Printf("BEFORE SERVICE: %+v\n", savedPlace)
+
 	// updated the place with the new information
 	err = ps.savedPlaceRepository.Update(ctx, savedPlace)
 	if err != nil {
 		log.Printf("Error updating place with id: %v and userId: %v. Error: %v\n", savedPlace.Id, savedPlace.UserId, err.Error())
 		return errors.ErrInternalServerError("failed to update saved place", nil)
 	}
+
+	fmt.Printf("AFTER SERVICES: %+v\n", savedPlace)
 
 	return nil
 }

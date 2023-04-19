@@ -102,3 +102,20 @@ func (p *Place) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
+
+func (p *Place) CopyValues(place Place) {
+	p.Id = place.Id
+	p.Name = place.Type
+	p.Name = place.Name
+	p.Latitude = place.Latitude
+	p.Longitude = place.Longitude
+	p.Accuracy = place.Accuracy
+	p.Description = place.Description
+	p.OSMId = place.OSMId
+	p.ATCOCode = place.ATCOCode
+	p.StationCode = place.StationCode
+	p.TiplocCode = place.TiplocCode
+	p.SMSCode = place.SMSCode
+	p.Distance = place.Distance
+	p.Key = place.Key
+}

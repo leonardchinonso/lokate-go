@@ -63,7 +63,7 @@ func (ah *AuthHandler) Signup(c *gin.Context) {
 	userId, err := ah.userService.Signup(c, user, sr.Password)
 	if err != nil {
 		log.Printf("Failed to sign user up. Error: %v\n", err.Error())
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 
@@ -73,7 +73,7 @@ func (ah *AuthHandler) Signup(c *gin.Context) {
 	user, err = ah.userService.GetUserByID(c, userId)
 	if err != nil {
 		log.Printf("Failed to get user from database. Error: %v\n", err.Error())
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 
@@ -81,7 +81,7 @@ func (ah *AuthHandler) Signup(c *gin.Context) {
 	at, rt, err := ah.tokenService.GenerateTokenPair(c, user)
 	if err != nil {
 		log.Printf("Failed to generate user token pair. Error: %v\n", err.Error())
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 
@@ -118,7 +118,7 @@ func (ah *AuthHandler) Login(c *gin.Context) {
 	err := ah.userService.Login(c, user, lr.Password)
 	if err != nil {
 		log.Printf("Failed to login user. Error: %v\n", err.Error())
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 
@@ -126,7 +126,7 @@ func (ah *AuthHandler) Login(c *gin.Context) {
 	at, rt, err := ah.tokenService.GenerateTokenPair(c, user)
 	if err != nil {
 		log.Printf("Failed to generate user token pair. Error: %v\n", err.Error())
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 
@@ -151,7 +151,7 @@ func (ah *AuthHandler) Logout(c *gin.Context) {
 	// attempt to log the user out
 	err := ah.userService.Logout(c, user.Id)
 	if err != nil {
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 

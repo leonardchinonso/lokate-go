@@ -10,6 +10,7 @@ type LastVisitedPlace struct {
 	Id        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	UserId    primitive.ObjectID `json:"user_id" bson:"user_id"`
 	PlaceId   primitive.ObjectID `json:"place_id" bson:"place_id,omitempty"`
+	Place     Place              `json:"place" bson:"place,omitempty"`
 	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
 }

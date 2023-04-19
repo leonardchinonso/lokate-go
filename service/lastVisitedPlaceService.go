@@ -68,15 +68,28 @@ func (l *lastVisitedPlaceService) GetLastNVisitedPlaces(ctx context.Context, use
 	}
 
 	// make the database call to get the last visited N places
-	placesExist, err := l.lastVisitedPlaceRepository.FindLastNVisitedPlaces(ctx, userId, lastVisitedPlaces, N)
+	exists, err := l.lastVisitedPlaceRepository.FindLastNVisitedPlaces(ctx, userId, lastVisitedPlaces, N)
 	if err != nil {
 		log.Printf("Error finding places with userId: %v. Error: %v\n", userId, err.Error())
 		return errors.ErrInternalServerError("failed to retrieve places", nil)
 	}
 
 	// return an error if the places do not exist
-	if !placesExist {
+	if !exists {
 		return errors.ErrBadRequest("places not found", nil)
+	}
+
+	// manually populate the places in the result
+	allPlacesExist, err := l.placeRepository.PopulatePlacesInLastVisited(ctx, lastVisitedPlaces)
+	if err != nil {
+		log.Printf("Error populating places. Error: %v\n", err.Error())
+		return errors.ErrInternalServerError("failed to retrieve places", nil)
+	}
+
+	// return an error if one of the places do not exist
+	if !allPlacesExist {
+		log.Printf("Error: Place missing")
+		return errors.ErrBadRequest("a place is missing", nil)
 	}
 
 	return nil

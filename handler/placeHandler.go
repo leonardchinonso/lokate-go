@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/leonardchinonso/lokate-go/middlewares"
 	"log"
+	"net/url"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -76,7 +77,7 @@ func (h *PlaceHandler) AddPlace(c *gin.Context) {
 	err := h.placeService.Create(c, place)
 	if err != nil {
 		log.Printf("Error creating a place with placeService. Error: %v\n", err)
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 
@@ -102,7 +103,7 @@ func (h *PlaceHandler) GetPlace(c *gin.Context) {
 	err = h.placeService.GetPlace(c, place)
 	if err != nil {
 		log.Printf("Error getting place document from the database. Error: %v\n", err)
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 
@@ -137,7 +138,7 @@ func (h *PlaceHandler) AddLastVisitedPlace(c *gin.Context) {
 	err = h.lastVisitedPlaceService.AddLastVisitedPlace(c, lastVisitedPlace)
 	if err != nil {
 		log.Printf("Error adding a place to last visited with placeService. Error: %v\n", err)
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 
@@ -152,7 +153,7 @@ func (h *PlaceHandler) GetLastNVisitedPlaces(c *gin.Context) {
 	if !ok {
 		log.Printf("Failed to retrieve user from authenticated request")
 		resErr := errors.ErrUnauthorized("you are not logged in", nil)
-		c.JSON(resErr.Status, gin.H{"errors": resErr})
+		c.JSON(resErr.Status, resErr)
 		return
 	}
 
@@ -175,7 +176,7 @@ func (h *PlaceHandler) GetLastNVisitedPlaces(c *gin.Context) {
 	err = h.lastVisitedPlaceService.GetLastNVisitedPlaces(c, user.Id, &lastVisitedPlaces, int64(numberOfPlaces))
 	if err != nil {
 		log.Printf("Error getting %v last visited places from service. Error %v", numberOfPlaces, err)
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 
@@ -185,8 +186,8 @@ func (h *PlaceHandler) GetLastNVisitedPlaces(c *gin.Context) {
 
 // Search handles the request to search for a place with text
 func (h *PlaceHandler) Search(c *gin.Context) {
-	// read the search value from the path parameter
-	searchStr := c.Query("query")
+	// read the search value from the path parameter and escape non-alphanumeric characters
+	searchStr := url.QueryEscape(c.Query("query"))
 
 	// create list of places object to put data into
 	var places []dao.Place
@@ -195,7 +196,7 @@ func (h *PlaceHandler) Search(c *gin.Context) {
 	placesResp, err := h.tapiService.SearchPlace(searchStr, &places)
 	if err != nil {
 		log.Printf("Error searching for places in the place service. Error: %v\n", err)
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 

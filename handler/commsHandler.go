@@ -63,7 +63,7 @@ func (ch *CommsHandler) ContactUs(c *gin.Context) {
 	// send email to the app's email
 	err := ch.commsService.SendContactUsEmail(c, contactUs)
 	if err != nil {
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 
@@ -75,7 +75,7 @@ func (ch *CommsHandler) About(c *gin.Context) {
 	// get about details from the service
 	about, err := ch.commsService.Details(c)
 	if err != nil {
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 

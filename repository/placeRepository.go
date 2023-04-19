@@ -53,3 +53,31 @@ func (p *placeRepo) FindByID(ctx context.Context, place *dao.Place) (bool, error
 func (p *placeRepo) FindByKey(ctx context.Context, place *dao.Place) (bool, error) {
 	return p.findByQuery(ctx, bson.M{"key": place.Key}, place)
 }
+
+// PopulatePlacesInLastVisited populates the places array in the lastVisitedPlaces object
+func (p *placeRepo) PopulatePlacesInLastVisited(ctx context.Context, lastVisitedPlaces *[]dao.LastVisitedPlace) (bool, error) {
+	for idx, lastVisited := range *lastVisitedPlaces {
+		var pl dao.Place
+		exists, err := p.findByQuery(ctx, bson.M{"_id": lastVisited.PlaceId}, &pl)
+		lastVisited.Place = pl
+		(*lastVisitedPlaces)[idx] = lastVisited
+		if err != nil {
+			return exists, err // TODO: should throw an error if one of the places is missing
+		}
+	}
+	return true, nil
+}
+
+// PopulatePlacesInSavedPlaces populates the places array in the savedPlaces object
+func (p *placeRepo) PopulatePlacesInSavedPlaces(ctx context.Context, savedPlaces *[]dao.SavedPlace) (bool, error) {
+	for idx, savedPlace := range *savedPlaces {
+		var pl dao.Place
+		exists, err := p.findByQuery(ctx, bson.M{"_id": savedPlace.PlaceId}, &pl)
+		savedPlace.Place = pl
+		(*savedPlaces)[idx] = savedPlace
+		if err != nil {
+			return exists, err // TODO: should throw an error if one of the places is missing
+		}
+	}
+	return true, nil
+}
