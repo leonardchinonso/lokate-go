@@ -13,6 +13,7 @@ import (
 
 type commsService struct {
 	contactUsRepository interfaces.ContactUsRepositoryInterface
+	aboutRepository     interfaces.AboutRepositoryInterface
 	smtpUsername        string
 	smtpPassword        string
 	smtpHost            string
@@ -20,7 +21,7 @@ type commsService struct {
 }
 
 // NewCommsService returns an interface for the comms service methods
-func NewCommsService(cfg *map[string]string, contactUsRepository interfaces.ContactUsRepositoryInterface) interfaces.CommsServiceInterface {
+func NewCommsService(cfg *map[string]string, contactUsRepository interfaces.ContactUsRepositoryInterface, aboutRepository interfaces.AboutRepositoryInterface) interfaces.CommsServiceInterface {
 	username := (*cfg)[config.SmtpUsername]
 	password := (*cfg)[config.SmtpPassword]
 	host := (*cfg)[config.SmtpHost]
@@ -28,6 +29,7 @@ func NewCommsService(cfg *map[string]string, contactUsRepository interfaces.Cont
 
 	return &commsService{
 		contactUsRepository: contactUsRepository,
+		aboutRepository:     aboutRepository,
 		smtpUsername:        username,
 		smtpPassword:        password,
 		smtpHost:            host,
@@ -49,6 +51,18 @@ func (cs *commsService) SendContactUsEmail(ctx context.Context, contactUs *dao.C
 		return errors.ErrInternalServerError("failed to send email as plain text", nil)
 	}
 
+	// build confirmation subject and message to show user
+	teamName := "The Lokate Team"
+	confirmationSubject := "Confirmation Of Receipt"
+	confirmationMessage := "Thank you for getting in touch with us. Someone from our team will reach out to you in the next 48 hours."
+
+	// send a confirmation email back to the user
+	err = utils.SendSimpleMailSMTP(teamName, contactUs.UserEmail, confirmationSubject, confirmationMessage, cs.smtpUsername, cs.smtpPassword, cs.smtpHost, cs.smtpPort)
+	if err != nil {
+		log.Printf("Error sending email as plain text. Error: %v\n", err)
+		return errors.ErrInternalServerError("failed to send confirmation email to user", nil)
+	}
+
 	// save the contactUs object to the db
 	if err = cs.contactUsRepository.Create(ctx, contactUs); err != nil {
 		log.Printf("Error saving contactUs object to the db with userId: %v. Error: %v\n", contactUs.UserId, err)
@@ -56,4 +70,16 @@ func (cs *commsService) SendContactUsEmail(ctx context.Context, contactUs *dao.C
 	}
 
 	return nil
+}
+
+// Details retrieves the about details from the database using the repo
+func (cs *commsService) Details(ctx context.Context) (*dao.About, error) {
+	var details = &dao.About{}
+
+	if err := cs.aboutRepository.GetDetails(ctx, details); err != nil {
+		log.Printf("Error getting details from repository. Error: %v\n", err)
+		return nil, errors.ErrInternalServerError("failed to retrieve about details", nil)
+	}
+
+	return details, nil
 }

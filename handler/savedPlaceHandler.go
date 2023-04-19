@@ -89,11 +89,11 @@ func (h *SavedPlaceHandler) AddToSavedPlaces(c *gin.Context) {
 	// call the save place service to save the place to the application
 	if err := h.savedPlaceService.AddSavedPlace(c, savedPlace); err != nil {
 		log.Printf("Failed to create a place in the application")
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 
-	resp := utils.ResponseStatusOK("place saved successfully", nil)
+	resp := utils.ResponseStatusOK("place saved successfully", savedPlace)
 	c.JSON(resp.Status, resp)
 }
 
@@ -112,7 +112,7 @@ func (h *SavedPlaceHandler) GetSavedPlace(c *gin.Context) {
 	if !ok {
 		log.Printf("Failed to retrieve user from authenticated request")
 		resErr := errors.ErrUnauthorized("you are not logged in", nil)
-		c.JSON(resErr.Status, gin.H{"errors": resErr})
+		c.JSON(resErr.Status, resErr)
 		return
 	}
 
@@ -123,7 +123,7 @@ func (h *SavedPlaceHandler) GetSavedPlace(c *gin.Context) {
 	err = h.savedPlaceService.GetSavedPlace(c, savedPlace)
 	if err != nil {
 		log.Printf("Failed to retrieve saved place from savedPlaceService")
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 
@@ -148,7 +148,7 @@ func (h *SavedPlaceHandler) GetSavedPlaces(c *gin.Context) {
 	err := h.savedPlaceService.GetSavedPlaces(c, user.Id, &savedPlaces)
 	if err != nil {
 		log.Printf("Failed to retrieve saved places from savedPlaceService")
-		c.JSON(errors.Status(err), gin.H{"error": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
 
@@ -171,7 +171,7 @@ func (h *SavedPlaceHandler) EditSavedPlace(c *gin.Context) {
 	if !ok {
 		log.Printf("Failed to retrieve user from authenticated request")
 		resErr := errors.ErrUnauthorized("you are not logged in", nil)
-		c.JSON(resErr.Status, gin.H{"errors": resErr})
+		c.JSON(resErr.Status, resErr)
 		return
 	}
 
@@ -186,13 +186,17 @@ func (h *SavedPlaceHandler) EditSavedPlace(c *gin.Context) {
 		return
 	}
 
+	fmt.Printf("BEFORE: %+v\n", savedPlace)
+
 	// call the savedPlaceService to handle it
 	err = h.savedPlaceService.EditSavedPlace(c, savedPlace)
 	if err != nil {
 		log.Printf("Error editing a place in the savedPlaceService: %v", err)
-		c.JSON(errors.Status(err), gin.H{"errors": err})
+		c.JSON(errors.Status(err), err)
 		return
 	}
+
+	fmt.Printf("AFFTER: %+v\n", savedPlace)
 
 	resp := utils.ResponseStatusOK("saved place updated successfully", savedPlace)
 	c.JSON(resp.Status, resp)

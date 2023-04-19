@@ -56,6 +56,7 @@ func (p *savedPlaceRepo) FindOneByIDAndUserID(ctx context.Context, savedPlace *d
 
 // FindOneByPlaceIDAndUserID finds a saved place by the place id and the user id
 func (p *savedPlaceRepo) FindOneByPlaceIDAndUserID(ctx context.Context, savedPlace *dao.SavedPlace) (bool, error) {
+	fmt.Printf("userId: %+v, placeId: %+v\n", savedPlace.UserId, savedPlace.PlaceId)
 	return p.findOneByQuery(ctx, bson.M{"user_id": savedPlace.UserId, "place_id": savedPlace.PlaceId}, savedPlace)
 }
 
