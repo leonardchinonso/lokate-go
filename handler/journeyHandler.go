@@ -16,6 +16,7 @@ type JourneyHandler struct {
 	tokenService interfaces.TokenServiceInterface
 }
 
+// InitJourneyHandler initializes the journey handler
 func InitJourneyHandler(router *gin.Engine, version string, tapiService interfaces.TAPIServiceInterface, tokenService interfaces.TokenServiceInterface) {
 	h := &JourneyHandler{
 		tapiService:  tapiService,

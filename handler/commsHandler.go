@@ -71,6 +71,7 @@ func (ch *CommsHandler) ContactUs(c *gin.Context) {
 	c.JSON(resp.Status, resp)
 }
 
+// About handles the incoming request to fetch the about information
 func (ch *CommsHandler) About(c *gin.Context) {
 	// get about details from the service
 	about, err := ch.commsService.Details(c)

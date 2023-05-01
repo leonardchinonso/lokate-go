@@ -1,5 +1,6 @@
 package dto
 
+// PlaceDTO is the data transfer object for the Place data structure
 type PlaceDTO struct {
 	Type        string   `json:"type"`
 	Name        string   `json:"name"`

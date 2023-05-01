@@ -6,6 +6,7 @@ import (
 	"github.com/leonardchinonso/lokate-go/models/dto"
 )
 
+// TAPIServiceInterface is the interface for the Transport API service
 type TAPIServiceInterface interface {
 	SearchPlace(searchStr string, places *[]dao.Place) ([]api.PlaceResponse, error)
 	PublicJourneyLonLat(from dto.Location, to dto.Location) (interface{}, error)

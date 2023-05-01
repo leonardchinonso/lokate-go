@@ -5,6 +5,7 @@ import (
 	"github.com/leonardchinonso/lokate-go/models/dao"
 )
 
+// UserFromRequest gets a user set by the authentication middleware
 func UserFromRequest(c *gin.Context) (*dao.User, bool) {
 	u, ok := c.Get("user")
 	if !ok {

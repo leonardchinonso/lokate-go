@@ -24,6 +24,7 @@ type Place struct {
 	Key         string             `json:"key" bson:"key"`
 }
 
+// NewPlace returns a new Place object
 func NewPlace(placeType, name, desc, osmid, atcocode, stationCode, tiplocCode, smsCode string, acc *int, lat, lon *float64) *Place {
 	return &Place{
 		Type:        placeType,
@@ -41,6 +42,8 @@ func NewPlace(placeType, name, desc, osmid, atcocode, stationCode, tiplocCode, s
 	}
 }
 
+// UnmarshalJSON is the  method for unmarshalling the Place data with JSON
+// it represents the interface for the unmarshalling
 func (p *Place) UnmarshalJSON(data []byte) error {
 	var m map[string]interface{}
 	if err := json.Unmarshal(data, &m); err != nil {
@@ -101,21 +104,4 @@ func (p *Place) UnmarshalJSON(data []byte) error {
 	p.Longitude = &lon
 
 	return nil
-}
-
-func (p *Place) CopyValues(place Place) {
-	p.Id = place.Id
-	p.Name = place.Type
-	p.Name = place.Name
-	p.Latitude = place.Latitude
-	p.Longitude = place.Longitude
-	p.Accuracy = place.Accuracy
-	p.Description = place.Description
-	p.OSMId = place.OSMId
-	p.ATCOCode = place.ATCOCode
-	p.StationCode = place.StationCode
-	p.TiplocCode = place.TiplocCode
-	p.SMSCode = place.SMSCode
-	p.Distance = place.Distance
-	p.Key = place.Key
 }

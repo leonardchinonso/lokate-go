@@ -120,3 +120,34 @@ func (us *userService) GetUserByID(ctx context.Context, userId primitive.ObjectI
 
 	return user, nil
 }
+
+func (us *userService) EditUserProfile(ctx context.Context, user *dao.User) error {
+	// check that the user id is not empty
+	if user.Id.IsZero() {
+		log.Printf("Error validating user Id: %v\n", user.Id)
+		return errors.ErrBadRequest("invalid user id", nil)
+	}
+
+	userChecker := dao.NewUser("", "", user.Email, "")
+
+	// check that the email is not taken
+	userExists, err := us.userRepository.FindByEmail(ctx, userChecker)
+	if err != nil {
+		log.Printf("Error finding user with email: %s. Error: %v\n", user.Email, err.Error())
+		return errors.ErrInternalServerError("failed to fetch user details", err)
+	}
+
+	// if the email already exists, return an error saying the email is taken
+	if userExists && user.Id != userChecker.Id {
+		return errors.ErrBadRequest("sorry, email is taken", nil)
+	}
+
+	// update the user with the new information
+	err = us.userRepository.Update(ctx, user)
+	if err != nil {
+		log.Printf("Error updating user with id: %v. Error: %v\n", user.Id, err.Error())
+		return errors.ErrInternalServerError("failed to update user information", nil)
+	}
+
+	return nil
+}

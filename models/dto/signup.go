@@ -24,10 +24,12 @@ func (sr *SignupRequest) Validate() []error {
 	utils.ShouldBePresentString(string(sr.Password), "password", &errs)
 	utils.ShouldBePresentString(string(sr.ConfirmPassword), "confirmed password", &errs)
 
+	// validate the email
 	if err := sr.Email.Validate(); err != nil {
 		errs = append(errs, fmt.Errorf("email is invalid"))
 	}
 
+	// validate the password
 	if err := sr.Password.Validate(); err != nil {
 		errs = append(errs, err)
 	} else if ok := sr.Password.IsEqualValue(sr.ConfirmPassword); !ok {

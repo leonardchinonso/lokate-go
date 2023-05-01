@@ -97,6 +97,7 @@ func (h *SavedPlaceHandler) AddToSavedPlaces(c *gin.Context) {
 	c.JSON(resp.Status, resp)
 }
 
+// GetSavedPlace handles the request to get a saved place
 func (h *SavedPlaceHandler) GetSavedPlace(c *gin.Context) {
 	// get the saved place id from the path parameter
 	savedPlaceId, err := primitive.ObjectIDFromHex(c.Param("id"))
@@ -131,6 +132,7 @@ func (h *SavedPlaceHandler) GetSavedPlace(c *gin.Context) {
 	c.JSON(resp.Status, resp)
 }
 
+// GetSavedPlaces handles the request to get all saved places
 func (h *SavedPlaceHandler) GetSavedPlaces(c *gin.Context) {
 	// retrieve the logged-in user from the authenticated request
 	user, ok := UserFromRequest(c)
@@ -156,6 +158,7 @@ func (h *SavedPlaceHandler) GetSavedPlaces(c *gin.Context) {
 	c.JSON(resp.Status, resp)
 }
 
+// EditSavedPlace handles the request to edit a saved place
 func (h *SavedPlaceHandler) EditSavedPlace(c *gin.Context) {
 	// get the place id from the path parameter
 	savedPlaceId, err := primitive.ObjectIDFromHex(c.Param("id"))
@@ -186,8 +189,6 @@ func (h *SavedPlaceHandler) EditSavedPlace(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("BEFORE: %+v\n", savedPlace)
-
 	// call the savedPlaceService to handle it
 	err = h.savedPlaceService.EditSavedPlace(c, savedPlace)
 	if err != nil {
@@ -196,12 +197,11 @@ func (h *SavedPlaceHandler) EditSavedPlace(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("AFFTER: %+v\n", savedPlace)
-
 	resp := utils.ResponseStatusOK("saved place updated successfully", savedPlace)
 	c.JSON(resp.Status, resp)
 }
 
+// DeleteSavedPlace handles the request to delete a saved place
 func (h *SavedPlaceHandler) DeleteSavedPlace(c *gin.Context) {
 	// get the place id from the path parameter
 	savedPlaceId, err := primitive.ObjectIDFromHex(c.Param("id"))

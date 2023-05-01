@@ -14,6 +14,7 @@ type UserRepositoryInterface interface {
 	Create(ctx context.Context, user *dao.User) (primitive.ObjectID, error)
 	FindByID(ctx context.Context, user *dao.User) (bool, error)
 	FindByEmail(ctx context.Context, user *dao.User) (bool, error)
+	Update(ctx context.Context, user *dao.User) error
 }
 
 // UserServiceInterface defines methods that are associated with the user repository
@@ -22,4 +23,5 @@ type UserServiceInterface interface {
 	Login(ctx context.Context, user *dao.User, password dto.Password) error
 	Logout(ctx context.Context, userId primitive.ObjectID) error
 	GetUserByID(ctx context.Context, userId primitive.ObjectID) (*dao.User, error)
+	EditUserProfile(ctx context.Context, user *dao.User) error
 }

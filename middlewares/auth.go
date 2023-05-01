@@ -11,6 +11,7 @@ import (
 
 // AuthorizeUser reads the token from the request header and gets the logged-in user
 func AuthorizeUser(ts interfaces.TokenServiceInterface) gin.HandlerFunc {
+	// return a function to handle the middleware
 	return func(c *gin.Context) {
 		tokenArr := c.Request.Header["Token"]
 		if len(tokenArr) == 0 || tokenArr[0] == "" {
@@ -20,6 +21,7 @@ func AuthorizeUser(ts interfaces.TokenServiceInterface) gin.HandlerFunc {
 			return
 		}
 
+		// split the authorization token by the Bearer token
 		splitTokenStr := strings.Split(tokenArr[0], "Bearer ")
 		if len(splitTokenStr) != 2 {
 			resErr := errors.ErrUnauthorized("must provide Authorization header with format `Bearer {token}`", nil)
@@ -28,6 +30,7 @@ func AuthorizeUser(ts interfaces.TokenServiceInterface) gin.HandlerFunc {
 			return
 		}
 
+		// get the user from the access token
 		user, err := ts.UserFromAccessToken(splitTokenStr[1])
 		if err != nil {
 			resErr := errors.ErrUnauthorized("sorry, you're not authorized for this request", nil)
