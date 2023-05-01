@@ -43,6 +43,7 @@ func NewLoginResponse(user dao.User, accessToken, refreshToken string) *LoginRes
 			LastName:    user.LastName,
 			DisplayName: user.DisplayName,
 			Email:       user.Email,
+			PhoneNumber: user.PhoneNumber,
 		},
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,

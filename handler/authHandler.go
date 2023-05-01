@@ -67,8 +67,6 @@ func (ah *AuthHandler) Signup(c *gin.Context) {
 		return
 	}
 
-	log.Printf("ID OF USER: %+v\n", userId)
-
 	// retrieve the new user object from the database
 	user, err = ah.userService.GetUserByID(c, userId)
 	if err != nil {
@@ -85,7 +83,7 @@ func (ah *AuthHandler) Signup(c *gin.Context) {
 		return
 	}
 
-	// create ah signup (login) response and return it to the handler's caller
+	// create signup (login) response and return it to the handler's caller
 	loginResp := dto.NewLoginResponse(*user, at, rt)
 	resp := utils.ResponseStatusCreated("signed up successfully", loginResp)
 

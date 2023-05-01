@@ -15,6 +15,7 @@ type ContactUs struct {
 	CreatedAt primitive.Timestamp `json:"created_at" bson:"created_at"`
 }
 
+// NewContactUs returns the ContactUs object
 func NewContactUs(userId primitive.ObjectID, userEmail, subject, message string) *ContactUs {
 	return &ContactUs{
 		UserId:    userId,

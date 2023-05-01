@@ -15,7 +15,7 @@ func Inject(ds *datasource.DataSource) (*gin.Engine, error) {
 
 	// load repositories
 	servCfg := injectRepositories(ds.Database)
-
+ 
 	// load services
 	handCfg, err := injectServices(ds.Cfg, servCfg)
 	if err != nil {

@@ -11,6 +11,7 @@ import (
 	"github.com/leonardchinonso/lokate-go/utils"
 )
 
+// commsService is the service for communications
 type commsService struct {
 	contactUsRepository interfaces.ContactUsRepositoryInterface
 	aboutRepository     interfaces.AboutRepositoryInterface

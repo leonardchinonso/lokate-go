@@ -58,3 +58,23 @@ func (ur *userRepo) FindByEmail(ctx context.Context, user *dao.User) (bool, erro
 	}
 	return true, nil
 }
+
+// Update updates a user in the database
+func (ur *userRepo) Update(ctx context.Context, user *dao.User) error {
+	filter := bson.D{{"_id", user.Id}}
+	update := bson.D{{"$set", bson.D{
+		{"first_name", user.FirstName}, {"last_name", user.LastName},
+		{"display_name", user.DisplayName}, {"email", user.Email},
+		{"phone_number", user.PhoneNumber}, {"updated_at", user.UpdatedAt},
+	}}}
+	return ur.updateByQuery(ctx, filter, update)
+}
+
+// updateByQuery updates a savedPlace by a specified query
+func (ur *userRepo) updateByQuery(ctx context.Context, filter primitive.D, update primitive.D) error {
+	_, err := ur.c.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	return nil
+}

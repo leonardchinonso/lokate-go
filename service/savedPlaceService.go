@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"github.com/leonardchinonso/lokate-go/errors"
 	"github.com/leonardchinonso/lokate-go/models/dao"
 	"github.com/leonardchinonso/lokate-go/models/interfaces"
@@ -169,16 +168,12 @@ func (ps *savedPlaceService) EditSavedPlace(ctx context.Context, savedPlace *dao
 		return errors.ErrInternalServerError("failed to update saved place", nil)
 	}
 
-	fmt.Printf("BEFORE SERVICE: %+v\n", savedPlace)
-
-	// updated the place with the new information
+	// update the place with the new information
 	err = ps.savedPlaceRepository.Update(ctx, savedPlace)
 	if err != nil {
 		log.Printf("Error updating place with id: %v and userId: %v. Error: %v\n", savedPlace.Id, savedPlace.UserId, err.Error())
 		return errors.ErrInternalServerError("failed to update saved place", nil)
 	}
-
-	fmt.Printf("AFTER SERVICES: %+v\n", savedPlace)
 
 	return nil
 }
